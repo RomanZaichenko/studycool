@@ -1,6 +1,6 @@
 import {Metadata} from "next";
-import "./ui/globals.css"
-import {Header} from "@/app/ui/components/Header";
+import "../components/ui/globals.css"
+import {Header} from "@/components/ui/Header";
 
 "./ui/Header.tsx"
 
