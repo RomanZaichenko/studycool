@@ -1,5 +1,5 @@
 import Image from "next/image";
-import {Searcher} from "@/components/ui/Searcher";
+import {Searcher} from "@/app/components/Searcher";
 
 export function Header() {
   return (

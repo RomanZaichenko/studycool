@@ -23,18 +23,16 @@ export default function Filters() {
 
 
   return (
-    <aside className="filters h-[85vh] flex flex-col max-w-md bg-white rounded-lg p-5">
-      <h2 className="mb-3 font-semibold text-3xl text-[#626060]
-        font-madefor">Filters</h2>
+    <aside className="filters h-[85vh] flex flex-col max-w-sm bg-white rounded-lg p-5">
+      <h2 className="mb-5 font-semibold text-5xl text-[#626060]
+        font-madefor text-shadow-md">Filters</h2>
       
       <div className="filters-list-wrapper flex flex-col justify-between h-full">
         <div className="filters-list flex flex-col">
           {filters.map((filter, index) => (
             <div key={index} className="filter-item-container group flex flex-row justify-between 
               items-center mb-2">
-              
 
-              
               <label className="flex items-center gap-3 cursor-pointer relative ">
                   <input 
                     type="checkbox" 
@@ -63,7 +61,7 @@ export default function Filters() {
                     </svg>
                   </div>
 
-                  <span className="font-victor text-[#878585] text-xl select-none">
+                  <span className="font-victor text-[#878585] text-2xl select-none">
                     {filter}
                   </span>
               </label>
@@ -87,11 +85,12 @@ export default function Filters() {
         </div>
         
         <div>
-          <input className="border-2 border-[#878585] rounded w-3xs pl-1 font-victor" type="text" placeholder="Filter name" value={inputValue} 
+          <input className="border-2 border-[#878585] text-lg rounded w-full pl-1 font-victor" 
+            type="text" placeholder="Filter name" value={inputValue} 
             onChange={(e)=> setInputValue(e.target.value)}/>
-          <button className="add-filters-button cursor-pointer w-3xs p-1 underline underline-offset-2
-            text-[#878585] font-victor mt-3 text-lg border-2 border-[#878585] rounded
-            hover:shadow-md"
+          <button className="add-filters-button cursor-pointer w-full p-1  underline-offset-2
+            text-white font-victor mt-3 text-lg rounded transition-all duration-300
+            hover:shadow-md bg-[#4b4276] hover:bg-[#564f7a] "
             onClick={addFilter}>Add filter</button>
         </div>
       </div>
