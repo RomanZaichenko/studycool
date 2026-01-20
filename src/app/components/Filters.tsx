@@ -24,8 +24,7 @@ export default function Filters() {
 
   return (
     <aside className="filters h-[85vh] flex flex-col max-w-sm bg-white rounded-lg p-5">
-      <h2 className="mb-5 font-semibold text-5xl text-[#626060]
-        font-madefor text-shadow-md">Filters</h2>
+      <h2 className="">Filters</h2>
       
       <div className="filters-list-wrapper flex flex-col justify-between h-full">
         <div className="filters-list flex flex-col">

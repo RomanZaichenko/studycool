@@ -7,3 +7,8 @@
     --font-madefor: 'Wix Madefor Text', sans-serif;
     --font-victor: 'Victor Mono', monospace;
 }
+
+h2 {
+    @apply mb-5 font-semibold text-5xl text-[#626060]
+        font-madefor text-shadow-md;
+}
