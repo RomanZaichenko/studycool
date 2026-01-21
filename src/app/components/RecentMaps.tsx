@@ -23,13 +23,13 @@ export default function RecentMaps() {
 
       <div className="maps flex flex-wrap ">
         {knowledgeMaps.map((map, index) => (
-          <div key={index} className="map bg-white rounded-lg p-5 m-5">
+          <div key={index} className="map bg-white rounded-lg p-5 mr-5 mb-5">
             <MapCard title={map.title} />
           </div>
         ))}
       </div>
 
-      <hr className="w-[70vw]"/>
+      <hr className="w-[70vw] text-[#333] border-1 opacity-20"/>
     </section>
   )
 } 

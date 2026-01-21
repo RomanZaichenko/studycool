@@ -1,5 +1,6 @@
 import Filters from "./components/Filters"
 import RecentMaps from "./components/RecentMaps";
+import Projects from "./components/Projects";
 
 export default function Home() {
   return (
@@ -7,6 +8,7 @@ export default function Home() {
       <Filters/>
       <section id="hero-section" className="">
         <RecentMaps/>
+        <Projects/>
       </section>
     </div>
   );
