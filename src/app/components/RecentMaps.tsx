@@ -21,9 +21,9 @@ export default function RecentMaps() {
     <section className="recent-maps ml-9 w-full">
       <h2 className="">Recent Maps</h2>
 
-      <div className="maps flex flex-wrap ">
+      <div className="maps flex flex-wrap mb-5">
         {knowledgeMaps.map((map, index) => (
-          <div key={index} className="map bg-white rounded-lg p-5 mr-5 mb-5">
+          <div key={index} className="map bg-white rounded-lg w-55 h-35 mr-5 mb-5">
             <MapCard title={map.title} />
           </div>
         ))}
