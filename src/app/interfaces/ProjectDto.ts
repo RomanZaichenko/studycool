@@ -1,11 +1,7 @@
-
-
-export default interface Project {
+export default interface ProjectDto {
   id: number,
   title: string,
   description?: string,
-  createdAt: Date,
-  lastOpened: Date,
   iconName?: string
   isCustomIcon?: boolean
   filters?: string[]

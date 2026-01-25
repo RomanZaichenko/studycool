@@ -4,6 +4,7 @@ import {useRef, useState, useEffect} from "react";
 import Project from "../interfaces/Project";
 import ProjectCard from "./ProjectCard";
 import Variants from "./Variants";
+import ProjectDto from "../interfaces/ProjectDto";
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -16,9 +17,20 @@ export default function Projects() {
   const hideAdditionVariants = () => {
     setIsShownVariants(false);
   }
-  
-  const addProject = ({id, title}: {id: number, title: string}) => {
-    const newProjects = [...projects, {id, title}]
+
+  const addProject = ({projectData}: {projectData: ProjectDto}) => {
+    const newProject: Project = {
+      id: projectData.id,
+      title: projectData.title,
+      createdAt: new Date(),
+      lastOpened: new Date(),
+      description: projectData.description,
+      iconName: projectData.iconName,
+      isCustomIcon: projectData.isCustomIcon,
+      filters: projectData.filters
+    };
+
+    const newProjects = [...projects, newProject];
     setProjects(newProjects);
     setIsShownVariants(false);
   }
