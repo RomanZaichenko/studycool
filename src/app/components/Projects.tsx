@@ -20,7 +20,7 @@ export default function Projects() {
 
   const addProject = ({projectData}: {projectData: ProjectDto}) => {
     const newProject: Project = {
-      id: projectData.id,
+      id: Date.now(),
       title: projectData.title,
       createdAt: new Date(),
       lastOpened: new Date(),

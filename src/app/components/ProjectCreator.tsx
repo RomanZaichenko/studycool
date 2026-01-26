@@ -44,7 +44,6 @@ export default function ProjectCreator({closeWindow, isVisible, addProject}:
 
   const createProject = () => { 
     const projectDto: ProjectDto = {
-      id: Date.now(),
       title: name,
       description: description,
       iconName: fileName,
