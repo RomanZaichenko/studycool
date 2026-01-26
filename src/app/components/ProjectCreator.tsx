@@ -112,7 +112,7 @@ export default function ProjectCreator({closeWindow, isVisible, addProject}:
                 border-dashed"
             >
               {fileName ? (
-                <p className="text-[#504679">{fileName}</p>
+                <p className="text-[#504679]">{fileName}</p>
               ) : (
                 <p className="text-[#676767] opacity-50">Choose from files...</p>
               )}

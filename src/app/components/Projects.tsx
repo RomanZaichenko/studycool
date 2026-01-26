@@ -3,12 +3,13 @@
 import {useRef, useState, useEffect} from "react";
 import Project from "../interfaces/Project";
 import ProjectCard from "./ProjectCard";
-import Variants from "./Variants";
 import ProjectDto from "../interfaces/ProjectDto";
+import ProjectCreator from "./ProjectCreator";
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isShownVariants, setIsShownVariants] = useState<boolean>(false)
+  const [isProjectVisible, setIsProjectVisible] = useState<boolean>(false)
 
   const showAdditionVariants = () => {
     setIsShownVariants(true);
@@ -32,7 +33,7 @@ export default function Projects() {
 
     const newProjects = [...projects, newProject];
     setProjects(newProjects);
-    setIsShownVariants(false);
+    setIsProjectVisible(false);
   }
 
   return (
@@ -40,6 +41,25 @@ export default function Projects() {
       <h2>Projects</h2>
     
       <div className="projects-items flex">
+        <div className="button relative">
+          <button onClick={() => setIsProjectVisible(true)}
+            className="add-button cursor-pointer bg-white pl-15 pr-15 
+              pt-5 pb-5 rounded-lg mr-5 ">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" 
+              viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="49" fill="white" stroke="#E5E5E5" 
+                strokeWidth="1"/>
+              <line x1="30" y1="50" x2="70" y2="50" stroke="#BDBDBD" 
+                strokeWidth="3"/>
+              <line x1="50" y1="30" x2="50" y2="70" stroke="#BDBDBD" 
+                strokeWidth="3"/>
+            </svg>
+          </button>
+
+          {/* <Variants isDisplayed={isShownVariants} addProject={addProject}
+            closeVariants={() => setIsShownVariants(false)}/> */}
+        </div>
+
         {projects.map((project, index) => (
           <div key={index} className="projects-item bg-white rounded-lg   
             mr-5 mb-5 w-55 h-35">
@@ -47,25 +67,12 @@ export default function Projects() {
           </div>
         ))}
 
-        <div className="variants relative" onBlur={hideAdditionVariants}>
-          <button onClick={showAdditionVariants}
-            className="add-button cursor-pointer bg-white pl-15 pr-15 
-              pt-5 pb-5 rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" 
-                viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="49" fill="white" stroke="#E5E5E5" 
-                  strokeWidth="1"/>
-                <line x1="30" y1="50" x2="70" y2="50" stroke="#BDBDBD" 
-                  strokeWidth="3"/>
-                <line x1="50" y1="30" x2="50" y2="70" stroke="#BDBDBD" 
-                  strokeWidth="3"/>
-              </svg>
-            </button>
 
-          <Variants isDisplayed={isShownVariants} addProject={addProject}
-            closeVariants={() => setIsShownVariants(false)}/>
-        </div>
       </div>
+
+      <ProjectCreator isVisible={isProjectVisible} 
+              closeWindow={() => setIsProjectVisible(false)}
+              addProject = {addProject}/>
     </section>
   )
 }
