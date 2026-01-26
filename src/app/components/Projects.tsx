@@ -8,16 +8,8 @@ import ProjectCreator from "./ProjectCreator";
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [isShownVariants, setIsShownVariants] = useState<boolean>(false)
   const [isProjectVisible, setIsProjectVisible] = useState<boolean>(false)
 
-  const showAdditionVariants = () => {
-    setIsShownVariants(true);
-  }
-
-  const hideAdditionVariants = () => {
-    setIsShownVariants(false);
-  }
 
   const addProject = ({projectData}: {projectData: ProjectDto}) => {
     const newProject: Project = {
@@ -55,16 +47,13 @@ export default function Projects() {
                 strokeWidth="3"/>
             </svg>
           </button>
-
-          {/* <Variants isDisplayed={isShownVariants} addProject={addProject}
-            closeVariants={() => setIsShownVariants(false)}/> */}
         </div>
 
         {projects.map((project, index) => (
-          <div key={index} className="projects-item bg-white rounded-lg   
-            mr-5 mb-5 w-55 h-35">
+          <button key={index} className="projects-item bg-white rounded-lg   
+            mr-5 mb-5 w-55 h-35 text-left">
             <ProjectCard title={project.title} />
-          </div>
+          </button>
         ))}
 
 

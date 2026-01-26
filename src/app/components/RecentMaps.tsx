@@ -1,16 +1,18 @@
 "use client";
 
 import Map from "../interfaces/Map";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MapCard from "./MapCard";
 import MapDto from "../interfaces/MapDto";
 import MapCreator from "./MapCreator";
+import Link from "next/link";
 
 
 export default function RecentMaps() {
 
   const [knowledgeMaps, setKnowledgeMaps] = useState<Map[]>([]);
   const [isMapVisible, setIsMapVisible] = useState<boolean>(false)
+  
   
 
   const addMap = ({mapData} : {mapData: MapDto}) => {
@@ -49,9 +51,12 @@ export default function RecentMaps() {
         </div>
 
         {knowledgeMaps.map((map, index) => (
-          <div key={index} className="map bg-white rounded-lg w-55 h-35 mr-5 mb-5">
-            <MapCard title={map.title} />
-          </div>
+          <Link href={`/map-area`} key={index}>
+            <div key={index} className="map bg-white rounded-lg w-55 h-35  
+              mr-5 mb-5 text-left cursor-pointer">
+              <MapCard title={map.title} />
+            </div>
+          </Link>
         ))}
       </div>
       

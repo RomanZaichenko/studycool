@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import MapDto from "../interfaces/MapDto";
+import { useRouter } from "next/navigation";
 
 
 interface ProjectCreatorProps {
@@ -16,6 +17,8 @@ export default function MapCreator({closeWindow, isVisible, addMap}:
   const [mounted, setMounted] =  useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState(""); 
+
+  const mapAreaRouter = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -37,6 +40,7 @@ export default function MapCreator({closeWindow, isVisible, addMap}:
     setTitle("");
     setDescription("");
     closeWindow();
+    mapAreaRouter.push('/map-area');
   }
 
   if (!mounted || !isVisible) return null;
