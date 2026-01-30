@@ -17,7 +17,7 @@ export default function HeaderLayout({children}: {
     <html lang="en">
       <body className="bg-[#efefef]">
         <Header/>
-        <main className={"mt-6 pl-4"}>{children}</main>
+        <main>{children}</main>
       </body>
     </html>
   );
