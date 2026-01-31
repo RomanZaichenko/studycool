@@ -39,19 +39,19 @@ export default function MapNode({data} : NodeProps<MapNodeData>) {
 
        {/* Right handles */}
       <Handle type="source" position={Position.Right} 
-        className={`!right-[-2] !top-0 ${invisibleHandleStyle}`} id="rtc" />
+        className={`!right-[0] !top-0 ${invisibleHandleStyle}`} id="rtc" />
       
       <div className={`!right-[-5] !top-[-3] ${visibleCircleStyle}`}/>
       
       <Handle type="source" position={Position.Right} id="r"
         className={`!right-[-2] !top-[47%] ${invisibleHandleStyle}`} />
 
-      <div className={`!right-[-5] !top-[47%] ${visibleCircleStyle}`}/>
+      <div className={`!right-[-5] !top-[45%] ${visibleCircleStyle}`}/>
 
       <Handle type="source" position={Position.Right}
-        className={`!right-[-2] !top-[95%] ${invisibleHandleStyle}`} id="rbc"/>
+        className={`!right-[0] !top-[95%] ${invisibleHandleStyle}`} id="rbc"/>
 
-      <div className={`!right-[-5] !top-[95%] ${visibleCircleStyle}`}/>
+      <div className={`!right-[-5] !top-[92%] ${visibleCircleStyle}`}/>
 
       {/* Bottom handles */}
       <Handle type="source" position={Position.Bottom} 
@@ -78,12 +78,12 @@ export default function MapNode({data} : NodeProps<MapNodeData>) {
       <Handle type="source" position={Position.Left} id="l"
         className={`!left-[-2] !top-[47%] ${invisibleHandleStyle}`} />
 
-      <div className={`!left-[-5] !top-[47%] ${visibleCircleStyle}`}/>
+      <div className={`!left-[-5] !top-[45%] ${visibleCircleStyle}`}/>
       
       <Handle type="source" position={Position.Left}
-        className={`!left-[-5] !top-[95%] ${invisibleHandleStyle}`} id="lbc" />
+        className={`!left-[0] !top-[92%] ${invisibleHandleStyle}`} id="lbc" />
 
-      <div className={`!left-[-5] !top-[95%] ${visibleCircleStyle}`}/>
+      <div className={`!left-[-5] !top-[92%] ${visibleCircleStyle}`}/>
 
       {/* Top handles */}
       <Handle type="source" position={Position.Top} 
