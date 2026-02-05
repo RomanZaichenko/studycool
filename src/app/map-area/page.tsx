@@ -17,7 +17,8 @@ function MapFlow() {
   const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
 
-  const {screenToFlowPosition} = useReactFlow()
+  const {screenToFlowPosition, getEdges} = useReactFlow()
+  
 
   const onNodesChange = useCallback( 
     (changes: NodeChange[]) => setNodes((nodesSnapshot) => 
@@ -33,6 +34,26 @@ function MapFlow() {
     (params: Edge | Connection) => setEdges((edgesSnapshot) => 
       addEdge(params, edgesSnapshot)), []
   );
+
+  const isValidConnection = useCallback(
+    (connection: Connection | Edge) => {
+      if (connection.source === connection.target) return false;
+
+      const currentEdges = getEdges()
+
+      const isDuplicate = currentEdges.some((edge) => {
+        const isDirect = edge.source === connection.source &&
+          edge.target === connection.target
+
+        const isReverse = edge.source === connection.target &&
+          edge.target === connection.source
+
+        return isReverse || isDirect
+      })
+
+      return !isDuplicate
+    }, [getEdges]
+  )
 
   const onPaneContextMenu = useCallback(
     (event: React.MouseEvent | MouseEvent) => {
@@ -69,6 +90,7 @@ function MapFlow() {
           connectionMode={ConnectionMode.Loose}
           connectionRadius={20}
           onPaneContextMenu={onPaneContextMenu}
+          isValidConnection={isValidConnection}
           defaultEdgeOptions={{
             type: "bezier",
             
