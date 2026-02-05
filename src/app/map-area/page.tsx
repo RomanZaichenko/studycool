@@ -69,6 +69,10 @@ function MapFlow() {
           connectionMode={ConnectionMode.Loose}
           connectionRadius={20}
           onPaneContextMenu={onPaneContextMenu}
+          defaultEdgeOptions={{
+            type: "bezier",
+            
+          }}
           fitView
           panOnScroll
         >
