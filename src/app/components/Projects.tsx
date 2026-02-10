@@ -2,9 +2,13 @@
 
 import {useRef, useState, useEffect} from "react";
 import Project from "../interfaces/Project";
-import ProjectCard from "./ProjectCard";
+import Card from "./Card";
 import ProjectDto from "../interfaces/ProjectDto";
 import ProjectCreator from "./ProjectCreator";
+import SectionWrapper from "./SectionWrapper";
+import AddButton from "./AddButton";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -29,39 +33,32 @@ export default function Projects() {
   }
 
   return (
-    <section className="projects ml-9 mt-9 text-6xl">
-      <h2>Projects</h2>
-    
-      <div className="projects-items flex">
-        <div className="button relative">
-          <button onClick={() => setIsProjectVisible(true)}
-            className="add-button cursor-pointer bg-white pl-15 pr-15 
-              pt-5 pb-5 rounded-lg mr-5 ">
-            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" 
-              viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="49" fill="white" stroke="#E5E5E5" 
-                strokeWidth="1"/>
-              <line x1="30" y1="50" x2="70" y2="50" stroke="#BDBDBD" 
-                strokeWidth="3"/>
-              <line x1="50" y1="30" x2="50" y2="70" stroke="#BDBDBD" 
-                strokeWidth="3"/>
-            </svg>
-          </button>
-        </div>
+    <SectionWrapper title="Projects" isLineShown={false}>
+      <AddButton handleClick={() => setIsProjectVisible(true)} />
 
-        {projects.map((project, index) => (
-          <button key={index} className="projects-item bg-white rounded-lg   
-            mr-5 mb-5 w-55 h-35 text-left">
-            <ProjectCard title={project.title} />
-          </button>
-        ))}
-
-
-      </div>
+      {projects.map((project) => (
+        <Link href={`/project-area/${project.id}`} key={project.id}>
+          <div className="mr-5 mb-5 cursor-pointer">
+            <Card title={project.title}>
+              <Image 
+                src="/"
+                width={200}
+                height={105}
+                alt={"Project Image"}
+                style ={{
+                  fontSize: "12px",
+                  marginRight: "5px",
+                }}
+              />
+            </Card>
+          </div>
+        </Link>
+      ))}
 
       <ProjectCreator isVisible={isProjectVisible} 
               closeWindow={() => setIsProjectVisible(false)}
               addProject = {addProject}/>
-    </section>
+    </SectionWrapper>
+
   )
 }

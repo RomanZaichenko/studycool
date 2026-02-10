@@ -3,7 +3,9 @@ import {Searcher} from "@/app/components/Searcher";
 
 export function Header() {
   return (
-    <header className="bg-[#504679] w-full h-[5vw] flex justify-between items-center">
+    <header className="bg-[#504679] w-full h-[5vw] flex justify-between     
+      items-center">
+        
       <Image src={"/icons/person.svg"}
         alt="Person"
         width="20"
