@@ -77,7 +77,9 @@ export default function MapCreator({closeWindow, isVisible, addMap}:
           <form action="" className="project-form ml-5">
             <input className={inputStyles} type="text" placeholder="Name"
               onChange={(e) => setTitle(e.target.value)}/>
-            <textarea className={inputStyles} placeholder="Description"
+            <textarea className={`${inputStyles} resize-none 
+              field-sizing-content max-h-[50vh]`} 
+              placeholder="Description"
               onChange={(e) => setDescription(e.target.value)}/>
 
             <button className="add-filters-button cursor-pointer w-[93%] p-1  

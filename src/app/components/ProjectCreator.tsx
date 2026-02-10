@@ -93,7 +93,9 @@ export default function ProjectCreator({closeWindow, isVisible, addProject}:
           <form action="" className="project-form ml-5">
             <input className={inputStyles} type="text" placeholder="Name"
               onChange={(e) => setName(e.target.value)}/>
-            <textarea className={inputStyles} placeholder="Description"
+            <textarea className={`${inputStyles} resize-none 
+              field-sizing-content max-h-[50vh]`}  
+              placeholder="Description"
               onChange={(e) => setDescription(e.target.value)}/>
             <div className="flex flex-col">
               <label className="font-bold font-inter mt-5 ml-1 ">
