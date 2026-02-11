@@ -18,6 +18,7 @@ function MapFlow() {
           onNodesChange={mapLogic.onNodesChange}
           onEdgesChange={mapLogic.onEdgesChange}
           onConnect={mapLogic.onConnect}
+          onEdgesDelete={mapLogic.onEdgesDelete}
           zoomActivationKeyCode={"Ctrl"}
           deleteKeyCode={"Delete"}
           connectionMode={ConnectionMode.Loose}
