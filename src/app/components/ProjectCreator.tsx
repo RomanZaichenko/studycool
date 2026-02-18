@@ -59,6 +59,11 @@ export default function ProjectCreator({closeWindow, isVisible, addProject}:
     closeWindow();
   }
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    createProject();
+  }
+  
   if (!mounted || !isVisible) return null;
 
   return createPortal(
@@ -90,7 +95,9 @@ export default function ProjectCreator({closeWindow, isVisible, addProject}:
         </div>
 
         <div className="project-inputs bg-[#efefef]">
-          <form action="" className="project-form ml-5">
+          <form action=""
+            onSubmit={handleSubmit}
+            className="project-form ml-5">
             <input className={inputStyles} type="text" placeholder="Name"
               onChange={(e) => setName(e.target.value)}/>
             <textarea className={`${inputStyles} resize-none 
@@ -129,8 +136,7 @@ export default function ProjectCreator({closeWindow, isVisible, addProject}:
 
             <button className="add-filters-button cursor-pointer w-[93%] p-1  
               underline-offset-2text-white font-inter mt-3 text-2xl rounded transition-all duration-300 text-white font-bold hover:shadow-md bg-[#4b4276] hover:bg-[#564f7a] mb-3 pt-2 pb-2"
-              onClick={() => createProject()}
-              type="button"
+              type="submit"
               >Create</button>
           </form>
         </div>

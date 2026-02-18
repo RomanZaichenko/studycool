@@ -29,6 +29,7 @@ export default function MapCreator({closeWindow, isVisible, addMap}:
   const inputStyles = `mt-3 bg-white rounded-xl border border-gray-300
         w-[93%] text-[#676767] font-inter text-lg p-3`
 
+  
   const createMap = () => { 
     const mapDto: MapDto = {
       title: title,
@@ -41,6 +42,11 @@ export default function MapCreator({closeWindow, isVisible, addMap}:
     setDescription("");
     closeWindow();
     mapAreaRouter.push('/map-area');
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    createMap();
   }
 
   if (!mounted || !isVisible) return null;
@@ -74,7 +80,9 @@ export default function MapCreator({closeWindow, isVisible, addMap}:
         </div>
 
         <div className="project-inputs bg-[#efefef]">
-          <form action="" className="project-form ml-5">
+          <form action=""
+            onSubmit={handleSubmit}
+            className="project-form ml-5">
             <input className={inputStyles} type="text" placeholder="Name"
               onChange={(e) => setTitle(e.target.value)}/>
             <textarea className={`${inputStyles} resize-none 
@@ -84,8 +92,8 @@ export default function MapCreator({closeWindow, isVisible, addMap}:
 
             <button className="add-filters-button cursor-pointer w-[93%] p-1  
               underline-offset-2text-white font-inter mt-3 text-2xl rounded transition-all duration-300 text-white font-bold hover:shadow-md bg-[#4b4276] hover:bg-[#564f7a] mb-3 pt-2 pb-2"
-              onClick={() => createMap()}
-              type="button"
+
+              type="submit"
               >Create</button>
           </form>
         </div>
