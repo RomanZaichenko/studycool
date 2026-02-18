@@ -1,13 +1,16 @@
+"use client"
 
+import { useReactFlow } from "@xyflow/react";
 
 export default function Zoomer() {
-
+  const {zoomIn, zoomOut} = useReactFlow();
   const buttonStyles = `bg-white rounded-md border border-gray-300 w-12 h-12
     cursor-pointer`
 
   return (
-    <div className="wrapper fixed bottom-10 right-10 flex flex-col gap-2">
-      <button className={buttonStyles}>
+    <div className="wrapper fixed bottom-10 right-10 flex flex-col gap-2 nopan z-50">
+      <button className={buttonStyles}
+        onClick={() => zoomIn({duration: 300})}>
         <svg  
           viewBox="0 0 24 24" 
           fill="none" 
@@ -23,7 +26,8 @@ export default function Zoomer() {
         </svg>
       </button>
 
-      <button className={buttonStyles}>
+      <button className={buttonStyles}
+        onClick={() => zoomOut({duration: 300})}>
         <svg
           viewBox="0 0 24 24"
           fill="none"

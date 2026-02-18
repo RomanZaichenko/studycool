@@ -1,3 +1,4 @@
+
 import { Handle, Position, NodeProps, Node, } from "@xyflow/react";
 
 type MapNodeData = Node<{
