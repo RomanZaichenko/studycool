@@ -4,6 +4,7 @@ export function Searcher() {
   return (
     <div id="searcher" className="flex items-center">
       <input type="text" placeholder="Search note"
+        aria-label="Searcher"
             className=" bg-white text-zinc-500 h-8 w-100  rounded-sm pl-3
           placeholder:text-gray-400 font-victor"/>
       

@@ -1,5 +1,3 @@
-
-
 interface CardProps {
   title: string;
   children: React.ReactNode;
@@ -7,16 +5,13 @@ interface CardProps {
 
 export default function Card({ title, children }: CardProps) {
   return (
-    <div className="bg-white flex flex-col rounded-lg w-55 h-35 text-left 
-      overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-      
-      <div className="flex-1 flex items-center justify-center overflow-hidden 
-        shadow-sm hover:shadow-md transition-shadow">
-          
+    <div className="flex h-35 w-55 flex-col overflow-hidden rounded-lg bg-white text-left shadow-sm transition-shadow hover:shadow-md">
+      <div className="flex flex-1 items-center justify-center overflow-hidden">
         {children}
       </div>
-      <hr className="text-[#333] opacity-20" />
-      <h3 className="font-victor text-[#B5B2B2] text-2xl pl-3">{title}</h3>
+      <h3 className="font-victor border-t border-[#B5B2B2] pl-3 text-2xl text-[#5B5757]">
+        {title}
+      </h3>
     </div>
   );
 }

@@ -103,14 +103,17 @@ export default function Filters() {
             pl-1 font-victor" 
             type="text" 
             placeholder="Filter name" 
+            aria-label="Filter name"
             value={inputValue} 
             onChange={(e)=> setInputValue(e.target.value)}/>
 
-          <button className="add-filters-button cursor-pointer w-full p-1  
+          <button
+            className="add-filters-button cursor-pointer w-full p-1  
             underline-offset-2 text-white font-victor mt-3 text-lg rounded 
             transition-all duration-300 hover:shadow-md bg-[#4b4276] 
             hover:bg-[#564f7a]"
             onClick={addFilter}>
+            
               Add filter
           </button>
         </div>
