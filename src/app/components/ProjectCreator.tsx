@@ -63,7 +63,7 @@ export default function ProjectCreator({closeWindow, isVisible, addProject}:
     e.preventDefault();
     createProject();
   }
-  
+
   if (!mounted || !isVisible) return null;
 
   return createPortal(

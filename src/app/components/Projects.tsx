@@ -34,7 +34,7 @@ export default function Projects() {
 
   return (
     <SectionWrapper title="Projects" isLineShown={false}>
-      <AddButton handleClick={() => setIsProjectVisible(true)} />
+      <AddButton className="mr-5" onClick={() => setIsProjectVisible(true)} />
 
       {projects.map((project) => (
         <Link href={`/project-area/${project.id}`} key={project.id}>

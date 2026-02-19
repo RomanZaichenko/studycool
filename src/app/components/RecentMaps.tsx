@@ -33,7 +33,7 @@
     }
     return (
       <SectionWrapper title="Recent Maps" isLineShown={true}>
-        <AddButton handleClick={() => setIsMapVisible(true)} />
+        <AddButton className="mr-5" onClick={() => setIsMapVisible(true)} />
 
         {knowledgeMaps.map((map) => (
           <Link href={`/map-area/${map.id}`} key={map.id}>
