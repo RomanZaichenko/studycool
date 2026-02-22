@@ -1,15 +1,43 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Victor+Mono:ital,wght@0,100..700;1,100..700&family=Wix+Madefor+Text:ital,wght@0,400..800;1,400..800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Victor+Mono:ital,wght@0,100..700;1,100..700&family=Wix+Madefor+Text:ital,wght@0,400..800;1,400..800&display=swap");
 @import "tailwindcss";
 
-
-
 @theme {
-    --font-madefor: 'Wix Madefor Text', sans-serif;
-    --font-victor: 'Victor Mono', monospace;
-    --font-inter: 'Inter', sans-serif;
+  /*Fonts*/
+  --font-madefor: "Wix Madefor Text", sans-serif;
+  --font-victor: "Victor Mono", monospace;
+  --font-inter: "Inter", sans-serif;
+
+  /* Colors */
+  --color-ui-light-stroke: #E5E5E5;
+  --color-ui-dark-stroke: #BDBDBD;
+  --color-ui-text-color: #5B5757;
+  --color-ui-border-color: #B5B2B2;
+  --color-primary-color: #504679;
+  --color-primary-hover: #5f5789;
+}
+
+@layer base {
+  :root {
+    --node-bg-1: #554D70;
+    --node-text-1: #ffffff;
+    --node-border-1: #333333;
+    
+    --node-bg-2: #DCD6E5;
+    --node-text-2: #504679;
+    --node-border-2: #B6ACC4;
+  }
+
+  [data-theme="ocean"] {
+    --node-bg-1: #0077b6;
+    --node-text-1: #ffffff;
+    --node-border-1: #03045e;
+    
+    --node-bg-2: #90e0ef;
+    --node-text-2: #023e8a;
+    --node-border-2: #0077b6;
+  }
 }
 
 h2 {
-    @apply mb-5 font-semibold text-5xl text-[#626060]
-        font-madefor text-shadow-md;
+  @apply font-madefor mb-5 text-5xl font-semibold text-[#626060] text-shadow-md;
 }

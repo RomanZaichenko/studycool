@@ -1,55 +1,55 @@
-  "use client";
+"use client";
 
-  import Map from "../interfaces/Map";
-  import { useEffect, useState } from "react";
-  import Card from "./Card";
-  import MapDto from "../interfaces/MapDto";
-  import MapCreator from "./MapCreator";
-  import Link from "next/link";
-  import SectionWrapper from "./SectionWrapper";
-  import AddButton from "./AddButton";
+import Map from "../interfaces/Map";
+import { useState } from "react";
+import Card from "./Card";
+import MapDto from "../interfaces/MapDto";
+import MapCreator from "./MapCreator";
+import Link from "next/link";
+import SectionWrapper from "./SectionWrapper";
+import AddButton from "./AddButton";
 
+export default function RecentMaps() {
+  const [knowledgeMaps, setKnowledgeMaps] = useState<Map[]>([]);
+  const [isCreatorVisible, setIsCreatorVisible] = useState<boolean>(false);
 
-  export default function RecentMaps() {
+  const addMap = ({ mapData }: { mapData: MapDto }) => {
+    const newMap: Map = {
+      id: Date.now(),
+      title: mapData.title,
+      description: mapData.description,
+      createdAt: new Date(),
+      lastOpened: new Date(),
+      miniMapIcon: undefined,
+    };
 
-    const [knowledgeMaps, setKnowledgeMaps] = useState<Map[]>([]);
-    const [isMapVisible, setIsMapVisible] = useState<boolean>(false)
-    
-    
+    setKnowledgeMaps((prevMaps) => [newMap, ...prevMaps]);
+    setIsCreatorVisible(false);
+  };
 
-    const addMap = ({mapData} : {mapData: MapDto}) => {
-      const newMap: Map = {
-        id: Date.now(),
-        title: mapData.title,
-        description: mapData.description,
-        createdAt: new Date(),
-        lastOpened: new Date(),
-        miniMapIcon: undefined
-      };
-
-      const updatedMaps = [newMap, ...knowledgeMaps];
-      setKnowledgeMaps(updatedMaps);
-      setIsMapVisible(false);
-    }
-    return (
-      <SectionWrapper title="Recent Maps" isLineShown={true}>
-        <AddButton className="mr-5" onClick={() => setIsMapVisible(true)} />
+  return (
+    <SectionWrapper title="Recent Maps" isLineShown={true}>
+      <div className="mt-4 flex flex-wrap items-start justify-center gap-4 sm:justify-start sm:gap-6">
+        <AddButton onClick={() => setIsCreatorVisible(true)} />
 
         {knowledgeMaps.map((map) => (
-          <Link href={`/map-area/${map.id}`} key={map.id}>
-            <div className=" mr-5 mb-5 cursor-pointer">
-                
-              <Card title={map.title}>
-                <svg className="w-55 h-26"> 
-                </svg>
-              </Card>
-            </div>
+          <Link
+            href={`/map-area/${map.id}`}
+            key={map.id}
+            className="block max-w-full cursor-pointer transition-transform hover:scale-[1.02] active:scale-95"
+          >
+            <Card title={map.title}>
+              <svg className="h-24 w-full max-w-[14rem] rounded bg-gray-50 sm:w-56"></svg>
+            </Card>
           </Link>
         ))}
+      </div>
 
-        <MapCreator isVisible={isMapVisible} 
-          closeWindow={() => setIsMapVisible(false)}
-          addMap= {addMap}/>
-      </SectionWrapper>
-    )
-  } 
+      <MapCreator
+        isVisible={isCreatorVisible}
+        closeWindow={() => setIsCreatorVisible(false)}
+        addMap={addMap}
+      />
+    </SectionWrapper>
+  );
+}

@@ -22,7 +22,8 @@ function MapFlow() {
           zoomActivationKeyCode={"Ctrl"}
           deleteKeyCode={"Delete"}
           connectionMode={ConnectionMode.Loose}
-          connectionRadius={20}
+          connectionRadius={1}
+          proOptions={{ hideAttribution: true }}
           onPaneContextMenu={mapLogic.onPaneContextMenu}
           isValidConnection={mapLogic.isValidConnection}
           onConnectStart={mapLogic.onConnectStart}

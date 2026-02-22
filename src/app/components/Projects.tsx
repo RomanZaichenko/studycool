@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import {useRef, useState, useEffect} from "react";
+import { useState } from "react";
 import Project from "../interfaces/Project";
 import Card from "./Card";
 import ProjectDto from "../interfaces/ProjectDto";
@@ -12,10 +12,9 @@ import Link from "next/link";
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [isProjectVisible, setIsProjectVisible] = useState<boolean>(false)
+  const [isCreatorVisible, setIsCreatorVisible] = useState<boolean>(false);
 
-
-  const addProject = ({projectData}: {projectData: ProjectDto}) => {
+  const addProject = ({ projectData }: { projectData: ProjectDto }) => {
     const newProject: Project = {
       id: Date.now(),
       title: projectData.title,
@@ -24,41 +23,47 @@ export default function Projects() {
       description: projectData.description,
       iconName: projectData.iconName,
       isCustomIcon: projectData.isCustomIcon,
-      filters: projectData.filters
+      filters: projectData.filters,
     };
 
-    const newProjects = [...projects, newProject];
-    setProjects(newProjects);
-    setIsProjectVisible(false);
-  }
+    setProjects((prevProjects) => [newProject, ...prevProjects]);
+    setIsCreatorVisible(false);
+  };
 
   return (
     <SectionWrapper title="Projects" isLineShown={false}>
-      <AddButton className="mr-5" onClick={() => setIsProjectVisible(true)} />
+      <div className="mt-4 flex flex-wrap items-start justify-center gap-4 sm:justify-start sm:gap-6">
+        <AddButton onClick={() => setIsCreatorVisible(true)} />
 
-      {projects.map((project) => (
-        <Link href={`/project-area/${project.id}`} key={project.id}>
-          <div className="mr-5 mb-5 cursor-pointer">
+        {projects.map((project) => (
+          <Link
+            href={`/project-area/${project.id}`}
+            key={project.id}
+            className="block max-w-full cursor-pointer transition-transform hover:scale-[1.02] active:scale-95"
+          >
             <Card title={project.title}>
-              <Image 
-                src="/"
-                width={200}
-                height={105}
-                alt={"Project Image"}
-                style ={{
-                  fontSize: "12px",
-                  marginRight: "5px",
-                }}
-              />
+              <div className="relative h-[105px] w-[200px] max-w-full sm:w-[200px]">
+                <Image
+                  src={
+                    project.iconName
+                      ? `/icons/${project.iconName}`
+                      : "/default-placeholder.svg"
+                  }
+                  fill
+                  alt={project.title}
+                  className="rounded object-cover text-xs"
+                />
+              </div>
             </Card>
-          </div>
-        </Link>
-      ))}
+          </Link>
+        ))}
+      </div>
 
-      <ProjectCreator isVisible={isProjectVisible} 
-              closeWindow={() => setIsProjectVisible(false)}
-              addProject = {addProject}/>
+      <ProjectCreator
+        isVisible={isCreatorVisible}
+        closeWindow={() => setIsCreatorVisible(false)}
+        addProject={addProject}
+      />
     </SectionWrapper>
-
-  )
+  );
 }

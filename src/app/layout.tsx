@@ -2,8 +2,6 @@ import {Metadata} from "next";
 import "./ui/globals.css"
 import {Header} from "@/app/components/Header";
 
-"./ui/Header.tsx"
-
 
 export const metadata: Metadata = {
   title: "StudyCool",

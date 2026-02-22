@@ -1,123 +1,77 @@
-'use client'
-import { useState } from "react"
+"use client";
+import { useFilters } from "../hooks/useFilters";
+import CheckIcon from "./CheckIcon";
+import MinusIcon from "./MinusIcon";
 
 export default function Filters() {
-  const [filters, setFilters] = useState<string[]>([])
-  const [inputValue, setInputValue] = useState<string>('')
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([])
-  
-  const addFilter = () => {
-    if (!inputValue.trim()) return;
+  const {
+    filters,
+    inputValue,
+    selectedFilters,
+    setInputValue,
+    addFilter,
+    removeFilter,
+    toggleFilter,
+  } = useFilters();
 
-    if(filters.includes(inputValue)) return;
-
-    setFilters([...filters, inputValue]);
-    setInputValue('');
-  }
-
-  const removeFilter = (filter: string) => {
-    setFilters(filters.filter((filt) => filt !== filter));
-    setSelectedFilters(selectedFilters.filter((filt) => filt !== filter));
-  }
-
-  const toggleFilter = (filter: string) => {
-    if (selectedFilters.includes(filter)) {
-      setSelectedFilters(selectedFilters.filter(f => f !== filter));
-    } 
-    else {
-      setSelectedFilters([...selectedFilters, filter]);
-    }
-  }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    addFilter();
+  };
 
   return (
-    <aside className="filters h-[85vh] flex flex-col max-w-sm bg-white 
-      rounded-lg p-5">
-
-      <h2 className="">Filters</h2>
-      <div className="filters-list-wrapper flex flex-col justify-between 
-        h-full">
-
-        <div className="filters-list flex flex-col">
+    <aside className="flex h-[85vh] max-w-sm flex-col rounded-lg bg-white p-5">
+      <h2>Filters</h2>
+      <div className="flex h-full flex-col justify-between overflow-hidden">
+        <div className="custom-scrollbar flex flex-col overflow-y-auto pr-2">
           {filters.map((filter) => (
-            <div key={filter} className="filter-item-container group flex 
-              flex-row justify-between items-center mb-2">
-
-              <label className="flex items-center gap-3 cursor-pointer 
-                relative ">
-                  
-                <input type="checkbox"
+            <div
+              key={filter}
+              className="filter-item-container group mb-2 flex flex-row items-center justify-between"
+            >
+              <label className="relative flex cursor-pointer items-center gap-3">
+                <input
+                  type="checkbox"
                   value={filter}
                   className="peer sr-only"
-                  checked = {selectedFilters.includes(filter)}
-                  onChange = {() => toggleFilter(filter)}
+                  checked={selectedFilters.includes(filter)}
+                  onChange={() => toggleFilter(filter)}
                 />
 
-                <div className="w-5 h-5 border-2 rounded border-none 
-                bg-[#4b4276] flex items-center justify-center
-                  transition-all duration-200 ease-in-out 
-                  peer-hover:bg-[#5f5789]
-                  peer-checked:bg-[#4b4276]
-                  peer-checked:[&>svg]:opacity-100">
-
-                  <svg className="w-4 h-4 text-white opacity-0 
-                    peer-checked:opacity-100 transition-opacity duration-200" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor" 
-                    strokeWidth="3">
-                    
-                    <path strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
+                <div className="bg-primary-color peer-checked:bg-primary-color peer-hover:bg-primary-hover flex h-5 w-5 items-center justify-center rounded border-2 border-none transition-all duration-200 ease-in-out peer-checked:[&>svg]:opacity-100">
+                  <CheckIcon />
                 </div>
 
-                <span className="font-victor text-[#878585] text-2xl 
-                  select-none">
+                <span className="font-victor text-ui-text-color text-2xl select-none">
                   {filter}
                 </span>
               </label>
 
-              <div className="remove-filter-icon mr-5 cursor-pointer opacity-0 
-                group-hover:opacity-100 transition-opacity duration-300"
-                onClick={() => removeFilter(filter)}>
-
-                <svg xmlns="http://www.w3.org/2000/svg" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  strokeWidth="3" 
-                  stroke="gray" 
-                  className="w-4 h-4">
-
-                  <path strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    d="M5 12h14" />
-                </svg>
+              <div
+                className="remove-filter-icon mr-5 cursor-pointer opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                onClick={() => removeFilter(filter)}
+              >
+                <MinusIcon className="h-5 w-5 text-gray-400 hover:text-gray-500"/>
               </div>
             </div>
-          ))} 
+          ))}
         </div>
-        
-        <div>
-          <input className="border-2 border-[#878585] text-lg rounded w-full  
-            pl-1 font-victor" 
-            type="text" 
-            placeholder="Filter name" 
-            aria-label="Filter name"
-            value={inputValue} 
-            onChange={(e)=> setInputValue(e.target.value)}/>
 
-          <button
-            className="add-filters-button cursor-pointer w-full p-1  
-            underline-offset-2 text-white font-victor mt-3 text-lg rounded 
-            transition-all duration-300 hover:shadow-md bg-[#4b4276] 
-            hover:bg-[#564f7a]"
-            onClick={addFilter}>
-            
-              Add filter
+        <form onSubmit={handleSubmit} className="shrink-0">
+          <input
+            className="font-victor border-ui-text-color placeholder:text-ui-text-color w-full rounded border-2 pl-1 text-lg"
+            type="text"
+            placeholder="Filter name"
+            aria-label="Filter name"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+          />
+
+          <button className="add-filters-button font-victor bg-primary-color hover:bg-primary-hover mt-3 w-full cursor-pointer rounded p-1 text-lg text-white underline-offset-2 transition-all duration-300 hover:shadow-md">
+            Add filter
           </button>
-        </div>
+        </form>
       </div>
-    </aside>  
-  )
+    </aside>
+  );
 }

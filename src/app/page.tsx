@@ -1,14 +1,14 @@
-import Filters from "./components/Filters"
+import Filters from "./components/Filters";
 import RecentMaps from "./components/RecentMaps";
 import Projects from "./components/Projects";
 
 export default function Home() {
   return (
-    <div id="main-page" className="flex ml-4 mt-6">
-      <Filters/>
-      <section id="hero-section" className="">
-        <RecentMaps/>
-        <Projects/>
+    <div className="mt-6 ml-4 flex">
+      <Filters />
+      <section className="w-full flex-1">
+        <RecentMaps />
+        <Projects />
       </section>
     </div>
   );

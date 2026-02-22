@@ -1,46 +1,29 @@
-"use client"
+"use client";
 
 import { useReactFlow } from "@xyflow/react";
+import MinusIcon from "../../components/MinusIcon";
+import PlusIcon from "@/app/components/PlusIcon";
 
 export default function Zoomer() {
-  const {zoomIn, zoomOut} = useReactFlow();
-  const buttonStyles = `bg-white rounded-md border border-gray-300 w-12 h-12
-    cursor-pointer`
+  const { zoomIn, zoomOut } = useReactFlow();
 
+  const buttonStyles = `
+  w-12 h-12 
+  bg-white border border-gray-300 rounded-md
+  flex items-center justify-center 
+  leading-none 
+  transition-all active:scale-95
+  shadow-sm text-gray-500
+  overflow-hidden cursor-pointer
+`;
   return (
-    <div className="wrapper fixed bottom-10 right-10 flex flex-col gap-2 nopan z-50">
-      <button className={buttonStyles}
-        onClick={() => zoomIn({duration: 300})}>
-        <svg  
-          viewBox="0 0 24 24" 
-          fill="none" 
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path 
-            d="M12 8V16M8 12H16" 
-            stroke="#BFBFBF" 
-            strokeWidth="2.5" 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-          />
-        </svg>
+    <div className="nopan fixed right-10 bottom-10 z-50 flex flex-col gap-2">
+      <button className={buttonStyles} onClick={() => zoomIn()}>
+        <PlusIcon className="h-7 w-7" />
       </button>
-
-      <button className={buttonStyles}
-        onClick={() => zoomOut({duration: 300})}>
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path 
-            d="M8 12H16" 
-            stroke="#BFBFBF" 
-            strokeWidth="2.5" 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-          />
-        </svg>
+      <button className={buttonStyles} onClick={() => zoomOut()}>
+        <MinusIcon className="h-7 w-7" />
       </button>
     </div>
-  )}
+  );
+}
