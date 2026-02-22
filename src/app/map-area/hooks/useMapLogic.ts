@@ -13,7 +13,7 @@ const nodeTypes = {
   mapNode: MapNode,
 };
 
-const idTranslate: Record<string, string> = {
+export const idTranslate: Record<string, string> = {
   "rtc": "l",
   "r": "l",
   "rbc": "l",
@@ -28,7 +28,7 @@ const idTranslate: Record<string, string> = {
   "t": "b"
 };
 
-const propagateLevelChange = (
+export const propagateLevelChange = (
   rootNodeId: string,
   newLevel: number,
   nodes: Node[],
