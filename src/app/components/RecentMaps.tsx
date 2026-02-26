@@ -8,10 +8,13 @@ import MapCreator from "./MapCreator";
 import Link from "next/link";
 import SectionWrapper from "./SectionWrapper";
 import AddButton from "./AddButton";
+import { useRouter } from 'next/navigation';
 
 export default function RecentMaps() {
   const [knowledgeMaps, setKnowledgeMaps] = useState<Map[]>([]);
   const [isCreatorVisible, setIsCreatorVisible] = useState<boolean>(false);
+
+  const router = useRouter();
 
   const addMap = ({ mapData }: { mapData: MapDto }) => {
     const newMap: Map = {
@@ -25,12 +28,14 @@ export default function RecentMaps() {
 
     setKnowledgeMaps((prevMaps) => [newMap, ...prevMaps]);
     setIsCreatorVisible(false);
+    router.push(`/map-area/${newMap.id}`)
   };
 
   return (
     <SectionWrapper title="Recent Maps" isLineShown={true}>
       <div className="mt-4 flex flex-wrap items-start justify-center gap-4 sm:justify-start sm:gap-6">
-        <AddButton onClick={() => setIsCreatorVisible(true)} />
+        <AddButton onClick={() => setIsCreatorVisible(true)}
+          aria-label="Create new map" />
 
         {knowledgeMaps.map((map) => (
           <Link

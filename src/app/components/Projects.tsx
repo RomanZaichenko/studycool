@@ -33,7 +33,8 @@ export default function Projects() {
   return (
     <SectionWrapper title="Projects" isLineShown={false}>
       <div className="mt-4 flex flex-wrap items-start justify-center gap-4 sm:justify-start sm:gap-6">
-        <AddButton onClick={() => setIsCreatorVisible(true)} />
+        <AddButton onClick={() => setIsCreatorVisible(true)}
+          aria-label="Create new project"/>
 
         {projects.map((project) => (
           <Link

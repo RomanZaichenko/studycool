@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import MapDto from "../interfaces/MapDto";
 import Modal from "./Modal"; // Шлях може відрізнятися
 
@@ -17,7 +16,6 @@ export default function MapCreator({
 }: MapCreatorProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const mapAreaRouter = useRouter();
 
   const inputStyles = `mt-3 bg-white rounded-xl border border-gray-300
         w-[93%] text-ui-text-color font-inter text-lg p-3 outline-none focus:border-primary-color transition-all duration-300`;
@@ -30,8 +28,6 @@ export default function MapCreator({
 
     setTitle("");
     setDescription("");
-    closeWindow();
-    mapAreaRouter.push("/map-area");
   };
 
   return (

@@ -1,9 +1,9 @@
 "use client"
 
-import Zoomer from "./components/Zoomer";
+import Zoomer from "../components/Zoomer";
 import { ReactFlow, Background , ConnectionMode,ReactFlowProvider,} from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
-import { useMapLogic } from "./hooks/useMapLogic"; 
+import { useMapLogic } from "../hooks/useMapLogic"; 
 
 function MapFlow() {
 
