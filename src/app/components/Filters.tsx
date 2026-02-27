@@ -1,22 +1,21 @@
 "use client";
-import { useFilters } from "../hooks/useFilters";
+import { useState } from "react";
+import { useMainStore } from "@/store/useMainStore";
 import CheckIcon from "./CheckIcon";
 import MinusIcon from "./MinusIcon";
 
 export default function Filters() {
-  const {
-    filters,
-    inputValue,
-    selectedFilters,
-    setInputValue,
-    addFilter,
-    removeFilter,
-    toggleFilter,
-  } = useFilters();
+  const [inputValue, setInputValue] = useState<string>("");
+  const filters = useMainStore((state) => state.filters);
+  const selectedFilters = useMainStore((state) => state.selectedFilters);
+  const addFilter = useMainStore((state) => state.addFilter);
+  const toggleFilter = useMainStore((state) => state.toggleFilter);
+  const removeFilter = useMainStore((state) => state.removeFilter);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    addFilter();
+    addFilter(inputValue);
+    setInputValue("");
   };
 
   return (
@@ -51,7 +50,7 @@ export default function Filters() {
                 className="remove-filter-icon mr-5 cursor-pointer opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                 onClick={() => removeFilter(filter)}
               >
-                <MinusIcon className="h-5 w-5 text-gray-400 hover:text-gray-500"/>
+                <MinusIcon className="h-5 w-5 text-gray-400 hover:text-gray-500" />
               </div>
             </div>
           ))}

@@ -1,49 +1,49 @@
-import { useState } from "react";
+// import { useState } from "react";
 
-export function useFilters() {
-  const [filters, setFilters] = useState<string[]>([]);
-  const [inputValue, setInputValue] = useState<string>("");
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+// export function useFilters() {
+//   // const [filters, setFilters] = useState<string[]>([]);
 
-  const addFilter = () => {
-    const cleanValue = inputValue.trim();
-    if (!cleanValue) return;
+//   // const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
 
-    const isDuplicate = filters.some(
-      (filt) => filt.toLowerCase() === cleanValue.toLowerCase()
-    );
+//   // const addFilter = () => {
+//   //   const cleanValue = inputValue.trim();
+//   //   if (!cleanValue) return;
 
-    if (isDuplicate) {
-      setInputValue("");
-      return;
-    }
+//   //   const isDuplicate = filters.some(
+//   //     (filt) => filt.toLowerCase() === cleanValue.toLowerCase()
+//   //   );
 
-    setFilters((prev) => [...prev, cleanValue]);
-    setInputValue("");
-  };
+//   //   if (isDuplicate) {
+//   //     setInputValue("");
+//   //     return;
+//   //   }
 
-  const removeFilter = (filterToRemove: string) => {
-    setFilters((prev) => prev.filter((filt) => filt !== filterToRemove));
-    setSelectedFilters((prev) =>
-      prev.filter((filt) => filt !== filterToRemove)
-    );
-  };
+//   //   setFilters((prev) => [...prev, cleanValue]);
+//   //   setInputValue("");
+//   // };
 
-  const toggleFilter = (filterToToggle: string) => {
-    setSelectedFilters((prev) =>
-      prev.includes(filterToToggle)
-        ? prev.filter((f) => f !== filterToToggle)
-        : [...prev, filterToToggle]
-    );
-  };
+//   // const removeFilter = (filterToRemove: string) => {
+//   //   setFilters((prev) => prev.filter((filt) => filt !== filterToRemove));
+//   //   setSelectedFilters((prev) =>
+//   //     prev.filter((filt) => filt !== filterToRemove)
+//   //   );
+//   // };
 
-  return {
-    filters,
-    inputValue,
-    selectedFilters,
-    setInputValue,
-    addFilter,
-    removeFilter,
-    toggleFilter,
-  };
-}
+//   // const toggleFilter = (filterToToggle: string) => {
+//   //   setSelectedFilters((prev) =>
+//   //     prev.includes(filterToToggle)
+//   //       ? prev.filter((f) => f !== filterToToggle)
+//   //       : [...prev, filterToToggle]
+//   //   );
+//   // };
+
+//   return {
+//     // filters,
+//     inputValue,
+//     // selectedFilters,
+//     setInputValue,
+//     // addFilter,
+//     // removeFilter,
+//     // toggleFilter,
+//   };
+// }
