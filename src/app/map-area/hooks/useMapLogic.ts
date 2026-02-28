@@ -1,4 +1,9 @@
-import { Connection, useReactFlow, OnConnectStartParams, Edge} from "@xyflow/react";
+import {
+  Connection,
+  useReactFlow,
+  OnConnectStartParams,
+  Edge,
+} from "@xyflow/react";
 import { useCallback, useRef } from "react";
 import { useMapEditorStore } from "@/store/useMapEditorStore";
 import MapNode from "../components/MapNode";
@@ -18,15 +23,13 @@ export const idTranslate: Record<string, string> = {
   t: "b",
 };
 
-
-
 export function useMapLogic() {
   const { screenToFlowPosition, getEdges } = useReactFlow();
   const connectionStartRef = useRef<OnConnectStartParams | null>(null);
 
   const nodeTypes = {
-    mapNode: MapNode
-  }
+    mapNode: MapNode,
+  };
 
   const addNodeAtPosition = useMapEditorStore(
     (state) => state.addNodeAtPosition
@@ -106,6 +109,6 @@ export function useMapLogic() {
     onPaneContextMenu,
     onConnectStart,
     onConnectEnd,
-    nodeTypes
+    nodeTypes,
   };
 }

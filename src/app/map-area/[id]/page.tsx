@@ -1,59 +1,96 @@
-"use client"
+"use client";
 
 import Zoomer from "../components/Zoomer";
-import { ReactFlow, Background , ConnectionMode,ReactFlowProvider,} from "@xyflow/react";
-import '@xyflow/react/dist/style.css';
-import { useMapLogic } from "../hooks/useMapLogic"; 
+import {
+  ReactFlow,
+  Background,
+  ConnectionMode,
+  ReactFlowProvider,
+  Node,
+  Edge,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import { useMapLogic } from "../hooks/useMapLogic";
 import { useMapEditorStore } from "@/store/useMapEditorStore";
-
-
+import { useEffect } from "react";
+import { useParams } from "next/navigation";
 
 function MapFlow() {
-
   const mapLogic = useMapLogic();
-  const nodes = useMapEditorStore((s) => s.nodes);
-  const edges = useMapEditorStore((s) => s.edges);
-  const onNodesChange = useMapEditorStore((s) => s.onNodesChange);
-  const onEdgesChange = useMapEditorStore((s) => s.onEdgesChange);
-  const onConnect = useMapEditorStore((s) => s.onConnect);
-  const onEdgesDelete = useMapEditorStore((s) => s.onEdgesDelete);
+  const currentMapId = useMapEditorStore((state) => state.currentMapId)
+  const nodes = useMapEditorStore((state) => state.nodes);
+  const edges = useMapEditorStore((state) => state.edges);
+  const onNodesChange = useMapEditorStore((state) => state.onNodesChange);
+  const onEdgesChange = useMapEditorStore((state) => state.onEdgesChange);
+  const onConnect = useMapEditorStore((state) => state.onConnect);
+  const onEdgesDelete = useMapEditorStore((state) => state.onEdgesDelete);
+
+  useEffect(() => {
+    if (currentMapId !== null && (nodes.length > 0 || edges.length > 0)) {
+      const dataToSave = JSON.stringify({ nodes, edges });
+      localStorage.setItem(`map_data_${currentMapId}`, dataToSave);
+    }
+  }, [nodes, edges, currentMapId])
+
   return (
-      <div className="w-[100vw] h-[90vh]">
-        <ReactFlow 
-          nodes={nodes} 
-          edges={edges}
-          nodeTypes={mapLogic.nodeTypes}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onEdgesDelete={onEdgesDelete}
-          zoomActivationKeyCode={"Ctrl"}
-          deleteKeyCode={"Delete"}
-          connectionMode={ConnectionMode.Loose}
-          connectionRadius={1}
-          proOptions={{ hideAttribution: true }}
-          onPaneContextMenu={mapLogic.onPaneContextMenu}
-          isValidConnection={mapLogic.isValidConnection}
-          onConnectStart={mapLogic.onConnectStart}
-          onConnectEnd={mapLogic.onConnectEnd}
-          defaultEdgeOptions={{
-            type: "bezier",
-            
-          }}
-          fitView
-          panOnScroll
-        >
-          <Background/>
-          <Zoomer/>
+    <div className="h-[90vh] w-[100vw]">
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={mapLogic.nodeTypes}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onEdgesDelete={onEdgesDelete}
+        zoomActivationKeyCode={"Ctrl"}
+        deleteKeyCode={"Delete"}
+        connectionMode={ConnectionMode.Loose}
+        connectionRadius={1}
+        proOptions={{ hideAttribution: true }}
+        onPaneContextMenu={mapLogic.onPaneContextMenu}
+        isValidConnection={mapLogic.isValidConnection}
+        onConnectStart={mapLogic.onConnectStart}
+        onConnectEnd={mapLogic.onConnectEnd}
+        defaultEdgeOptions={{
+          type: "bezier",
+        }}
+        fitView
+        panOnScroll
+      >
+        <Background />
+        <Zoomer />
       </ReactFlow>
     </div>
   );
 }
 
 export default function MapArea() {
+  const params = useParams();
+  const mapId = Number(params.id);
+  const loadMapData = useMapEditorStore((state) => state.loadMapData);
+  const resetMap = useMapEditorStore((state) => state.resetMap);
+
+  useEffect(() => {
+    if (!mapId) return;
+    const savedMapData = localStorage.getItem(`map_data_${mapId}`);
+
+    let fetchedNodes: Node[] = [];
+    let fetchedEdges: Edge[] = [];
+
+    if (savedMapData) {
+      const parsedData = JSON.parse(savedMapData);
+      fetchedNodes = parsedData.nodes || [];
+      fetchedEdges = parsedData.edges || [];
+    }
+
+    loadMapData(mapId, fetchedNodes, fetchedEdges);
+
+    return () => resetMap();
+  }, [mapId, loadMapData, resetMap]);
+
   return (
     <ReactFlowProvider>
-      <MapFlow/>
+      <MapFlow />
     </ReactFlowProvider>
-  )
+  );
 }

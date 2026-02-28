@@ -52,6 +52,7 @@ export const propagateLevelChange = (
 interface MapEditorState {
   nodes: Node[];
   edges: Edge[];
+  currentMapId: number | null;
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection | Edge) => void;
@@ -65,11 +66,20 @@ interface MapEditorState {
     handleId: string,
     endHandleId: string
   ) => void;
+
+  loadMapData: (
+    mapId: number,
+    initialNodes: Node[],
+    initialEdges: Edge[]
+  ) => void;
+
+  resetMap: () => void;
 }
 
 export const useMapEditorStore = create<MapEditorState>((set, get) => ({
   nodes: [],
   edges: [],
+  currentMapId: null,
 
   onNodesChange: (changes) => {
     set({ nodes: applyNodeChanges(changes, get().nodes) });
@@ -83,7 +93,7 @@ export const useMapEditorStore = create<MapEditorState>((set, get) => ({
     const { nodes, edges } = get();
     const newEdges = addEdge(params, edges);
     set({ edges: newEdges });
-    
+
     const sourceNode = nodes.find((node) => node.id === params.source);
     const targetNode = nodes.find((node) => node.id === params.target);
 
@@ -94,7 +104,12 @@ export const useMapEditorStore = create<MapEditorState>((set, get) => ({
 
       if (targetLevel < expectedTargetLevel && expectedTargetLevel <= 3) {
         set({
-          nodes: propagateLevelChange(targetNode.id, expectedTargetLevel, nodes, newEdges)
+          nodes: propagateLevelChange(
+            targetNode.id,
+            expectedTargetLevel,
+            nodes,
+            newEdges
+          ),
         });
       }
     }
@@ -107,14 +122,21 @@ export const useMapEditorStore = create<MapEditorState>((set, get) => ({
     );
 
     set({ edges: remainingEdges });
-    
+
     let currentNodes = [...nodes];
     deletedEdges.forEach((deletedEdge) => {
       const targetNodeId = deletedEdge.target;
-      const hasOtherParents = remainingEdges.some((edge) => edge.target === targetNodeId);
+      const hasOtherParents = remainingEdges.some(
+        (edge) => edge.target === targetNodeId
+      );
 
       if (!hasOtherParents) {
-        currentNodes = propagateLevelChange(targetNodeId, 1, currentNodes, remainingEdges);
+        currentNodes = propagateLevelChange(
+          targetNodeId,
+          1,
+          currentNodes,
+          remainingEdges
+        );
       }
     });
     set({ nodes: currentNodes });
@@ -123,25 +145,31 @@ export const useMapEditorStore = create<MapEditorState>((set, get) => ({
   addNodeAtPosition: (position) => {
     const newNode: Node = {
       id: `node-${crypto.randomUUID().slice(0, 8)}`,
-      type: 'mapNode',
+      type: "mapNode",
       position,
       data: { label: "New node", level: 1 },
-      origin: [0.5, 0.5] as [number, number]
+      origin: [0.5, 0.5] as [number, number],
     };
     set((state) => ({ nodes: [...state.nodes, newNode] }));
   },
 
-  createNodeFromConnection: (position, nodeId, handleType, handleId, endHandleId) => {
+  createNodeFromConnection: (
+    position,
+    nodeId,
+    handleType,
+    handleId,
+    endHandleId
+  ) => {
     const { nodes, edges } = get();
     const newNodeId = `node-${crypto.randomUUID().slice(0, 8)}`;
 
     const newEdge: Edge = {
       id: `e-${newNodeId}-${nodeId}`,
-      source: handleType === 'source' ? nodeId : newNodeId,
-      target: handleType === 'source' ? newNodeId : nodeId,
-      sourceHandle: handleType === 'source' ? handleId : endHandleId,
-      targetHandle: handleType === 'target' ? handleId : endHandleId,
-      type: 'bezier'
+      source: handleType === "source" ? nodeId : newNodeId,
+      target: handleType === "source" ? newNodeId : nodeId,
+      sourceHandle: handleType === "source" ? handleId : endHandleId,
+      targetHandle: handleType === "target" ? handleId : endHandleId,
+      type: "bezier",
     };
 
     const sourceNode = nodes.find((node) => node.id === nodeId);
@@ -153,12 +181,28 @@ export const useMapEditorStore = create<MapEditorState>((set, get) => ({
       type: "mapNode",
       position,
       data: { label: "New Node", level: newLevel },
-      origin: [0.5, 0.5] as [number, number]
+      origin: [0.5, 0.5] as [number, number],
     };
 
-    set({ 
-      nodes: [...nodes, newNode], 
-      edges: [...edges, newEdge] 
+    set({
+      nodes: [...nodes, newNode],
+      edges: [...edges, newEdge],
     });
-  }
+  },
+
+  loadMapData: (mapId, initialNodes, initialEdges) => {
+    set({
+      currentMapId: mapId,
+      nodes: initialNodes,
+      edges: initialEdges,
+    });
+  },
+
+  resetMap: () => {
+    set({
+      currentMapId: null,
+      nodes: [],
+      edges: [],
+    });
+  },
 }));
