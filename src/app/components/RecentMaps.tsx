@@ -9,9 +9,11 @@ import Link from "next/link";
 import SectionWrapper from "./SectionWrapper";
 import AddButton from "./AddButton";
 import { useRouter } from 'next/navigation';
+import { useMainStore } from "@/store/useMainStore";
 
 export default function RecentMaps() {
-  const [knowledgeMaps, setKnowledgeMaps] = useState<Map[]>([]);
+  const addMapToStore = useMainStore((state) => state.addMap)
+  const knowledgeMaps = useMainStore((state) => state.maps)
   const [isCreatorVisible, setIsCreatorVisible] = useState<boolean>(false);
 
   const router = useRouter();
@@ -26,7 +28,7 @@ export default function RecentMaps() {
       miniMapIcon: undefined,
     };
 
-    setKnowledgeMaps((prevMaps) => [newMap, ...prevMaps]);
+    addMapToStore(newMap)
     setIsCreatorVisible(false);
     router.push(`/map-area/${newMap.id}`)
   };
@@ -37,7 +39,7 @@ export default function RecentMaps() {
         <AddButton onClick={() => setIsCreatorVisible(true)}
           aria-label="Create new map" />
 
-        {knowledgeMaps.map((map) => (
+        {knowledgeMaps.map((map : Map) => (
           <Link
             href={`/map-area/${map.id}`}
             key={map.id}

@@ -23,7 +23,7 @@ export default function Filters() {
       <h2>Filters</h2>
       <div className="flex h-full flex-col justify-between overflow-hidden">
         <div className="custom-scrollbar flex flex-col overflow-y-auto pr-2">
-          {filters.map((filter) => (
+          {filters.map((filter : string) => (
             <div
               key={filter}
               className="filter-item-container group mb-2 flex flex-row items-center justify-between"

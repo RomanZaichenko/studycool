@@ -6,7 +6,7 @@ import Modal from "./Modal"; // Шлях може відрізнятися
 interface ProjectCreatorProps {
   closeWindow: () => void;
   isVisible: boolean;
-  addProject: ({ projectData }: { projectData: ProjectDto }) => void;
+  addProject: (projectData: ProjectDto ) => void;
 }
 
 export default function ProjectCreator({
@@ -35,14 +35,13 @@ export default function ProjectCreator({
     if (!name.trim()) return;
 
     addProject({
-      projectData: {
         title: name,
         description,
         iconName: fileName,
         isCustomIcon: !!fileName,
         filters: [],
       },
-    });
+    );
 
     setName("");
     setDescription("");
