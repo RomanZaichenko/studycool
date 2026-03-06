@@ -9,4 +9,5 @@ export default interface Project {
   iconName?: string
   isCustomIcon?: boolean
   filters?: string[]
+  maps?: string[]
 }

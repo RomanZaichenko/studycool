@@ -13,7 +13,9 @@ import "@xyflow/react/dist/style.css";
 import { useMapLogic } from "../hooks/useMapLogic";
 import { useMapEditorStore } from "@/store/useMapEditorStore";
 import { useEffect } from "react";
+import { useMainStore } from "@/store/useMainStore";
 import { useParams } from "next/navigation";
+import { updateTag } from "next/cache";
 
 function MapFlow() {
   const mapLogic = useMapLogic();
@@ -24,12 +26,14 @@ function MapFlow() {
   const onEdgesChange = useMapEditorStore((state) => state.onEdgesChange);
   const onConnect = useMapEditorStore((state) => state.onConnect);
   const onEdgesDelete = useMapEditorStore((state) => state.onEdgesDelete);
+  
 
   useEffect(() => {
     if (currentMapId !== null && (nodes.length > 0 || edges.length > 0)) {
       const dataToSave = JSON.stringify({ nodes, edges });
       localStorage.setItem(`map_data_${currentMapId}`, dataToSave);
     }
+
   }, [nodes, edges, currentMapId])
 
   return (
@@ -69,11 +73,12 @@ export default function MapArea() {
   const mapId = Number(params.id);
   const loadMapData = useMapEditorStore((state) => state.loadMapData);
   const resetMap = useMapEditorStore((state) => state.resetMap);
+  const updateLastOpened = useMainStore((state) => state.updateMapAccessTime);
 
   useEffect(() => {
     if (!mapId) return;
+    updateLastOpened(mapId);
     const savedMapData = localStorage.getItem(`map_data_${mapId}`);
-
     let fetchedNodes: Node[] = [];
     let fetchedEdges: Edge[] = [];
 
@@ -86,7 +91,7 @@ export default function MapArea() {
     loadMapData(mapId, fetchedNodes, fetchedEdges);
 
     return () => resetMap();
-  }, [mapId, loadMapData, resetMap]);
+  }, [mapId, loadMapData, resetMap, updateLastOpened]);
 
   return (
     <ReactFlowProvider>

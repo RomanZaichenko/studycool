@@ -1,7 +1,9 @@
 "use client";
 import { useState } from "react";
 import MapDto from "../interfaces/MapDto";
-import Modal from "./Modal"; // Шлях може відрізнятися
+import Modal from "./Modal";
+import { useMainStore } from "@/store/useMainStore";
+import { GENERAL_PROJECT_ID } from "@/store/slices/createProjectsSlice";
 
 interface MapCreatorProps {
   closeWindow: () => void;
@@ -16,6 +18,10 @@ export default function MapCreator({
 }: MapCreatorProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [selectedProjectId, setSelectedProjectId] =
+    useState<number>(GENERAL_PROJECT_ID);
+
+  const projects = useMainStore((state) => state.projects);
 
   const inputStyles = `mt-3 bg-white rounded-xl border border-gray-300
         w-[93%] text-ui-text-color font-inter text-lg p-3 outline-none focus:border-primary-color transition-all duration-300`;
@@ -24,10 +30,12 @@ export default function MapCreator({
     e.preventDefault();
     if (!title.trim()) return;
 
-    addMap({ mapData: { title, description } });
+    addMap({ mapData: { title, description, projectId: selectedProjectId } });
 
     setTitle("");
     setDescription("");
+    setSelectedProjectId(GENERAL_PROJECT_ID);
+    closeWindow()
   };
 
   return (
@@ -46,6 +54,18 @@ export default function MapCreator({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
+
+        <select
+          className={inputStyles}
+          value={selectedProjectId}
+          onChange={(e) => setSelectedProjectId(Number(e.target.value))}
+        >
+          {projects.map((project) => (
+            <option key={project.id} value={project.id}>
+              {project.title === "General" ? "General" : project.title}
+            </option>
+          ))}
+        </select>
 
         <button
           className="font-inter bg-primary-color hover:bg-primary-hover mt-6 mb-3 w-[93%] cursor-pointer rounded p-2 text-2xl font-bold text-white transition-all duration-300 hover:shadow-md active:scale-95"

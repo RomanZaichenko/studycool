@@ -15,6 +15,24 @@ export default function Projects() {
   const addProject = useMainStore((state) => state.addProject);
   const [isCreatorVisible, setIsCreatorVisible] = useState<boolean>(false);
 
+  // --- ЛОГІКА СОРТУВАННЯ ПРОЄКТІВ ---
+  const sortedProjects = [...projects].sort((a: Project, b: Project) => {
+    // 1. Проєкт "Загальний" (або "General") ЗАВЖДИ в самому низу
+    // Заміни "Загальний" на ту назву, яка в тебе використовується для дефолтного проєкту
+    if (a.title === "General") return 1;  // Опускаємо a вниз
+    if (b.title === "General") return -1; // Опускаємо b вниз
+
+    // 2. Інші проєкти сортуємо за останніми (наприклад, за датою оновлення чи входу)
+    // Якщо у тебе в інтерфейсі Project є поле типу lastVisitedAt чи updatedAt:
+    // const timeA = new Date(a.lastVisitedAt || 0).getTime();
+    // const timeB = new Date(b.lastVisitedAt || 0).getTime();
+    // return timeB - timeA; 
+
+    // *Якщо дати поки немає, залишаємо їх у тому порядку, як вони є, 
+    // або сортуємо за ID (від новіших до старіших):
+    return b.id - a.id; 
+  });
+
   return (
     <SectionWrapper title="Projects" isLineShown={false}>
       <div className="mt-4 flex flex-wrap items-start justify-center gap-4 sm:justify-start sm:gap-6">
@@ -23,7 +41,8 @@ export default function Projects() {
           aria-label="Create new project"
         />
 
-        {projects.map((project : Project) => (
+        {/* Рендеримо вже ВІДСОРТОВАНИЙ масив */}
+        {sortedProjects.map((project: Project) => (
           <Link
             href={`/project-area/${project.id}`}
             key={project.id}

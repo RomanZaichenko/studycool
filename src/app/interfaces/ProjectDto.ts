@@ -6,5 +6,5 @@ export default interface ProjectDto {
   iconName?: string
   isCustomIcon?: boolean
   filters?: string[]
-  mapsIds?: number[]
+  maps?: string[]
 }
