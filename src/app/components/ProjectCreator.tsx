@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 import ProjectDto from "../interfaces/ProjectDto";
 import Modal from "./Modal";
-import { useMainStore } from "@/store/useMainStore"; // <-- Імпортуємо ваш стор
+import { useMainStore } from "@/store/useMainStore";
 
 interface ProjectCreatorProps {
   closeWindow: () => void;
@@ -19,19 +19,14 @@ export default function ProjectCreator({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  // Стани для мульти-вибору мап
   const [selectedMaps, setSelectedMaps] = useState<string[]>([]);
   const [mapSearch, setMapSearch] = useState<string>("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // --- БЕРЕМО РЕАЛЬНІ МАПИ ЗІ СТОРУ ---
   const storedMaps = useMainStore((state) => state.maps || []);
 
-  // Отримуємо масив назв мап.
-  // (Якщо ваші мапи мають інше поле для назви, наприклад, map.name, змініть map.title на map.name)
-  // Описуємо можливий тип мапи: або рядок, або об'єкт із полями title/name
   const allMapNames = storedMaps.map(
     (map: { title?: string; name?: string } | string) =>
       typeof map === "string" ? map : map.title || map.name || ""
@@ -40,7 +35,6 @@ export default function ProjectCreator({
   const inputStyles = `mt-3 bg-white rounded-xl border border-gray-300
         w-[93%] text-ui-text-color font-inter text-lg p-3 outline-none focus:border-primary-color transition-all duration-300`;
 
-  // Фільтруємо реальні мапи: шукаємо за текстом і відкидаємо ті, що вже обрані
   const availableMaps = allMapNames.filter(
     (mapName: string) =>
       mapName.toLowerCase().includes(mapSearch.toLowerCase()) &&
@@ -78,7 +72,6 @@ export default function ProjectCreator({
       maps: selectedMaps,
     });
 
-    // Очищення полів
     setName("");
     setDescription("");
     setFileName("");

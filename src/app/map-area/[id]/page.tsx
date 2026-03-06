@@ -15,26 +15,23 @@ import { useMapEditorStore } from "@/store/useMapEditorStore";
 import { useEffect } from "react";
 import { useMainStore } from "@/store/useMainStore";
 import { useParams } from "next/navigation";
-import { updateTag } from "next/cache";
 
 function MapFlow() {
   const mapLogic = useMapLogic();
-  const currentMapId = useMapEditorStore((state) => state.currentMapId)
+  const currentMapId = useMapEditorStore((state) => state.currentMapId);
   const nodes = useMapEditorStore((state) => state.nodes);
   const edges = useMapEditorStore((state) => state.edges);
   const onNodesChange = useMapEditorStore((state) => state.onNodesChange);
   const onEdgesChange = useMapEditorStore((state) => state.onEdgesChange);
   const onConnect = useMapEditorStore((state) => state.onConnect);
   const onEdgesDelete = useMapEditorStore((state) => state.onEdgesDelete);
-  
 
   useEffect(() => {
     if (currentMapId !== null && (nodes.length > 0 || edges.length > 0)) {
       const dataToSave = JSON.stringify({ nodes, edges });
       localStorage.setItem(`map_data_${currentMapId}`, dataToSave);
     }
-
-  }, [nodes, edges, currentMapId])
+  }, [nodes, edges, currentMapId]);
 
   return (
     <div className="h-[90vh] w-[100vw]">

@@ -14,13 +14,10 @@ import { useMainStore } from "@/store/useMainStore";
 export default function RecentMaps() {
   const addMapToStore = useMainStore((state) => state.addMap);
   const knowledgeMaps = useMainStore((state) => state.maps);
-  const projects = useMainStore((state) => state.projects); // Беремо проєкти для пошуку "Загального"
+  const projects = useMainStore((state) => state.projects);
   
   const [isCreatorVisible, setIsCreatorVisible] = useState<boolean>(false);
   const router = useRouter();
-
-  // --- ЛОГІКА СОРТУВАННЯ МАП ---
-  // Сортуємо від найновіших за часом відкриття до найстаріших
   const sortedMaps = [...knowledgeMaps].sort((a, b) => {
     return new Date(b.lastOpened).getTime() - new Date(a.lastOpened).getTime();
   });
@@ -32,7 +29,6 @@ export default function RecentMaps() {
     id: Date.now(),
     title: mapData.title,
     description: mapData.description,
-    // Тепер поле projectId береться з об'єкта всередині mapData
     projectId: mapData.projectId || generalProject?.id || 0, 
     createdAt: new Date(),
     lastOpened: new Date(),
@@ -52,7 +48,6 @@ export default function RecentMaps() {
           aria-label="Create new map" 
         />
 
-        {/* 2. Рендеримо ВІДСОРТОВАНИЙ масив sortedMaps */}
         {sortedMaps.map((map: Map) => (
           <Link
             href={`/map-area/${map.id}`}
