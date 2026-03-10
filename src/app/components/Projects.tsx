@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Card from "./Card";
 import ProjectCreator from "./ProjectCreator";
 import SectionWrapper from "./SectionWrapper";
@@ -13,14 +13,25 @@ import Project from "../interfaces/Project";
 export default function Projects() {
   const projects = useMainStore((state) => state.projects);
   const addProject = useMainStore((state) => state.addProject);
+  const selectedFilters = useMainStore((state) => state.selectedFilters);
   const [isCreatorVisible, setIsCreatorVisible] = useState<boolean>(false);
 
-  const sortedProjects = [...projects].sort((a: Project, b: Project) => {
-    if (a.title === "General") return 1;  // Опускаємо a вниз
-    if (b.title === "General") return -1; // Опускаємо b вниз
+  const filteredProjects = useMemo(() => {
+    if (selectedFilters.length === 0) return projects;
 
-    return b.id - a.id; 
-  });
+    return projects.filter((project) =>
+      selectedFilters.some((filter) => project.filters?.includes(filter))
+    );
+  }, [projects, selectedFilters]);
+
+  const sortedProjects = [...filteredProjects].sort(
+    (a: Project, b: Project) => {
+      if (a.title === "General") return 1;
+      if (b.title === "General") return -1;
+
+      return b.id - a.id;
+    }
+  );
 
   return (
     <SectionWrapper title="Projects" isLineShown={false}>
