@@ -1,8 +1,7 @@
 "use client";
-import { useRef, useState } from "react";
 import ProjectDto from "../interfaces/ProjectDto";
 import Modal from "./Modal";
-import { useMainStore } from "@/store/useMainStore";
+import { useProjectForm } from "../hooks/useProjectForm"; // Зміни шлях, якщо потрібно
 
 interface ProjectCreatorProps {
   closeWindow: () => void;
@@ -15,70 +14,35 @@ export default function ProjectCreator({
   isVisible,
   addProject,
 }: ProjectCreatorProps) {
-  const [fileName, setFileName] = useState<string>("");
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-
-  const [selectedMaps, setSelectedMaps] = useState<string[]>([]);
-  const [mapSearch, setMapSearch] = useState<string>("");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const storedMaps = useMainStore((state) => state.maps || []);
-
-  const allMapNames = storedMaps.map(
-    (map: { title?: string; name?: string } | string) =>
-      typeof map === "string" ? map : map.title || map.name || ""
-  );
+  const {
+    name,
+    setName,
+    description,
+    setDescription,
+    fileName,
+    fileInputRef,
+    handleFileChange,
+    selectedMaps,
+    mapSearch,
+    setMapSearch,
+    isMapDropdownOpen,
+    setIsMapDropdownOpen,
+    availableMaps,
+    handleAddMap,
+    handleRemoveMap,
+    selectedFilters,
+    filterSearch,
+    setFilterSearch,
+    isFilterDropdownOpen,
+    setIsFilterDropdownOpen,
+    availableFilters,
+    handleAddFilter,
+    handleRemoveFilter,
+    handleSubmit,
+  } = useProjectForm({ addProject, closeWindow });
 
   const inputStyles = `mt-3 bg-white rounded-xl border border-gray-300
         w-[93%] text-ui-text-color font-inter text-lg p-3 outline-none focus:border-primary-color transition-all duration-300`;
-
-  const availableMaps = allMapNames.filter(
-    (mapName: string) =>
-      mapName.toLowerCase().includes(mapSearch.toLowerCase()) &&
-      !selectedMaps.includes(mapName)
-  );
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFileName(e.target.files[0].name);
-    } else {
-      setFileName("");
-    }
-  };
-
-  const handleAddMap = (mapName: string) => {
-    setSelectedMaps((prev) => [...prev, mapName]);
-    setMapSearch("");
-    setIsDropdownOpen(false);
-  };
-
-  const handleRemoveMap = (mapToRemove: string) => {
-    setSelectedMaps((prev) => prev.filter((map) => map !== mapToRemove));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-
-    addProject({
-      title: name,
-      description,
-      iconName: fileName,
-      isCustomIcon: !!fileName,
-      filters: [],
-      maps: selectedMaps,
-    });
-
-    setName("");
-    setDescription("");
-    setFileName("");
-    setSelectedMaps([]);
-    setMapSearch("");
-    closeWindow();
-  };
 
   return (
     <Modal
@@ -86,7 +50,10 @@ export default function ProjectCreator({
       closeWindow={closeWindow}
       title="Create project"
     >
-      <form onSubmit={handleSubmit} className="flex flex-col items-center pb-4">
+      <form
+        onSubmit={handleSubmit}
+        className="flex max-h-[75vh] w-full flex-col items-center overflow-y-auto pb-4"
+      >
         <input
           className={inputStyles}
           type="text"
@@ -101,7 +68,6 @@ export default function ProjectCreator({
           value={description}
         />
 
-        {/* --- Вибір іконки --- */}
         <div className="mt-5 flex w-[93%] flex-col">
           <label className="font-inter text-ui-text-color ml-1 font-bold">
             Choose icon
@@ -128,7 +94,6 @@ export default function ProjectCreator({
           onChange={handleFileChange}
         />
 
-        {/* --- Мульти-вибір мап --- */}
         <div className="relative mt-5 flex w-[93%] flex-col">
           <label className="font-inter text-ui-text-color ml-1 font-bold">
             Add maps
@@ -141,14 +106,13 @@ export default function ProjectCreator({
             value={mapSearch}
             onChange={(e) => {
               setMapSearch(e.target.value);
-              setIsDropdownOpen(true);
+              setIsMapDropdownOpen(true);
             }}
-            onFocus={() => setIsDropdownOpen(true)}
-            onBlur={() => setIsDropdownOpen(false)}
+            onFocus={() => setIsMapDropdownOpen(true)}
+            onBlur={() => setIsMapDropdownOpen(false)}
           />
 
-          {/* Випадаючий список з РЕАЛЬНИМИ мапами */}
-          {isDropdownOpen && availableMaps.length > 0 && (
+          {isMapDropdownOpen && availableMaps.length > 0 && (
             <div className="absolute top-[85px] left-[3.5%] z-10 max-h-48 w-[93%] overflow-y-auto rounded-xl border border-gray-300 bg-white shadow-lg">
               {availableMaps.map((mapName: string, index: number) => (
                 <div
@@ -165,7 +129,6 @@ export default function ProjectCreator({
             </div>
           )}
 
-          {/* Відображення обраних мап (Теги) */}
           {selectedMaps.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
               {selectedMaps.map((map, idx) => (
@@ -187,12 +150,61 @@ export default function ProjectCreator({
           )}
         </div>
 
-        {/* Поле фільтра */}
-        <input
-          className={`${inputStyles} mt-7`}
-          type="text"
-          placeholder="Enter filter..."
-        />
+        <div className="relative mt-5 flex w-[93%] flex-col">
+          <label className="font-inter text-ui-text-color ml-1 font-bold">
+            Add filters
+          </label>
+
+          <input
+            type="text"
+            className={inputStyles}
+            placeholder="Search and add filters..."
+            value={filterSearch}
+            onChange={(e) => {
+              setFilterSearch(e.target.value);
+              setIsFilterDropdownOpen(true);
+            }}
+            onFocus={() => setIsFilterDropdownOpen(true)}
+            onBlur={() => setIsFilterDropdownOpen(false)}
+          />
+
+          {isFilterDropdownOpen && availableFilters.length > 0 && (
+            <div className="absolute top-[85px] left-[3.5%] z-10 max-h-48 w-[93%] overflow-y-auto rounded-xl border border-gray-300 bg-white shadow-lg">
+              {availableFilters.map((filter: string, index: number) => (
+                <div
+                  key={index}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleAddFilter(filter);
+                  }}
+                  className="font-inter text-ui-text-color hover:text-primary-color cursor-pointer p-3 transition-colors hover:bg-gray-100"
+                >
+                  {filter}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {selectedFilters.length > 0 && (
+            <div className="mt-3 flex w-[93%] flex-wrap gap-2">
+              {selectedFilters.map((filter, idx) => (
+                <div
+                  key={idx}
+                  className="font-inter text-ui-text-color flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-100 px-3 py-1 text-sm"
+                >
+                  <span>{filter}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveFilter(filter)}
+                    className="font-bold text-gray-400 hover:text-red-500"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         <button
           className="font-inter bg-primary-color hover:bg-primary-hover mt-6 mb-3 w-[93%] cursor-pointer rounded p-2 text-2xl font-bold text-white transition-all duration-300 hover:shadow-md active:scale-95"
