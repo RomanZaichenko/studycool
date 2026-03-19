@@ -19,7 +19,7 @@ export default function Filters() {
   };
 
   return (
-    <aside className="flex h-[85vh] max-w-sm flex-col rounded-lg bg-white p-5">
+    <aside className="flex h-[85vh] max-w-sm sticky z-0 flex-col rounded-lg bg-white p-5">
       <h2>Filters</h2>
       <div className="flex h-full flex-col justify-between overflow-hidden">
         <div className="custom-scrollbar flex flex-col overflow-y-auto pr-2">
