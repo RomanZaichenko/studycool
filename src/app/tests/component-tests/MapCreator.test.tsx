@@ -1,12 +1,13 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import MapCreator from "../../components/MapCreator";
+import { useMainStore } from "@/store/useMainStore";
 
-const mockPush = vi.fn();
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: mockPush,
-  }),
+vi.mock("@/store/useMainStore");
+
+vi.mock("@/store/slices/createProjectsSlice", () => ({
+  GENERAL_PROJECT_ID: 0,
+  createProjectsSlice: vi.fn(),
 }));
 
 describe("MapCreator Component - UI Integration Tests", () => {
@@ -15,10 +16,20 @@ describe("MapCreator Component - UI Integration Tests", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    vi.mocked(useMainStore).mockImplementation((selector) => {
+      const state = {
+        projects: [
+          { id: 0, title: "General" },
+          { id: 1, title: "University" },
+        ],
+      } as unknown as ReturnType<typeof useMainStore.getState>;
+
+      return selector(state);
+    });
   });
 
   it("should not render if isVisible is false", () => {
-
     render(
       <MapCreator
         isVisible={false}
@@ -42,6 +53,9 @@ describe("MapCreator Component - UI Integration Tests", () => {
     expect(screen.getByText("Create map")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Name")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Description")).toBeInTheDocument();
+
+    expect(screen.getByRole("combobox")).toBeInTheDocument();
+
     expect(screen.getByRole("button", { name: /create/i })).toBeInTheDocument();
   });
 
@@ -55,7 +69,9 @@ describe("MapCreator Component - UI Integration Tests", () => {
     );
 
     const nameInput = screen.getByPlaceholderText("Name") as HTMLInputElement;
-    const descInput = screen.getByPlaceholderText("Description") as HTMLTextAreaElement;
+    const descInput = screen.getByPlaceholderText(
+      "Description"
+    ) as HTMLTextAreaElement;
 
     fireEvent.change(nameInput, { target: { value: "My New Map" } });
     fireEvent.change(descInput, { target: { value: "A cool description" } });
@@ -79,7 +95,7 @@ describe("MapCreator Component - UI Integration Tests", () => {
     expect(mockAddMap).not.toHaveBeenCalled();
   });
 
-  it("should submit form data, close window, and navigate on success", () => {
+  it("should submit form data, close window, and send correct projectId", () => {
     render(
       <MapCreator
         isVisible={true}
@@ -88,8 +104,14 @@ describe("MapCreator Component - UI Integration Tests", () => {
       />
     );
 
-    fireEvent.change(screen.getByPlaceholderText("Name"), { target: { value: "University Map" } });
-    fireEvent.change(screen.getByPlaceholderText("Description"), { target: { value: "Campus layout" } });
+    fireEvent.change(screen.getByPlaceholderText("Name"), {
+      target: { value: "University Map" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Description"), {
+      target: { value: "Campus layout" },
+    });
+
+    fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
 
     const createButton = screen.getByRole("button", { name: /create/i });
     fireEvent.click(createButton);
@@ -98,10 +120,10 @@ describe("MapCreator Component - UI Integration Tests", () => {
       mapData: {
         title: "University Map",
         description: "Campus layout",
+        projectId: 1,
       },
     });
 
     expect(mockCloseWindow).toHaveBeenCalledTimes(1);
-    expect(mockPush).toHaveBeenCalledWith("/map-area");
   });
 });

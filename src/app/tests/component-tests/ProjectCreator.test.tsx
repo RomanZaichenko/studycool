@@ -8,6 +8,7 @@ describe("ProjectCreator Component - UI Integration Tests", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    global.URL.createObjectURL = vi.fn(() => "mock-url");
   });
 
   it("should render correctly when isVisible is true", async () => {
@@ -60,7 +61,6 @@ describe("ProjectCreator Component - UI Integration Tests", () => {
     await screen.findByText("Create project");
 
     const file = new File(["icon-content"], "logo.png", { type: "image/png" });
-
     const fileInput = document.querySelector(
       'input[type="file"]'
     ) as HTMLInputElement;
@@ -99,6 +99,7 @@ describe("ProjectCreator Component - UI Integration Tests", () => {
     fireEvent.change(screen.getByPlaceholderText("Name"), {
       target: { value: "Project Alpha" },
     });
+
     fireEvent.change(screen.getByPlaceholderText("Description"), {
       target: { value: "Test description" },
     });
@@ -113,13 +114,12 @@ describe("ProjectCreator Component - UI Integration Tests", () => {
     fireEvent.click(createButton);
 
     expect(mockAddProject).toHaveBeenCalledWith({
-      projectData: {
-        title: "Project Alpha",
-        description: "Test description",
-        iconName: "icon.png",
-        isCustomIcon: true,
-        filters: [],
-      },
+      title: "Project Alpha",
+      description: "Test description",
+      iconName: "icon.png",
+      isCustomIcon: true,
+      filters: [],
+      maps: [],
     });
 
     expect(mockCloseWindow).toHaveBeenCalledTimes(1);
