@@ -14,13 +14,17 @@ describe("NoteEditor Component - Unit Tests", () => {
   it("calls onSave and onClose when the close button is clicked", async () => {
     const user = userEvent.setup();
     render(
-      <NoteEditor isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />
+      <NoteEditor 
+        isOpen={true} 
+        onClose={mockOnClose} 
+        onSave={mockOnSave} 
+        initialTitle="" 
+        initialContent="" 
+      />
     );
 
     const titleInput = screen.getByPlaceholderText("Note title");
-    const contentInput = screen.getByPlaceholderText(
-      "Start typing your note..."
-    );
+    const contentInput = screen.getByPlaceholderText("Start typing your note...");
 
     await user.type(titleInput, "My Auto-save Note");
     await user.type(contentInput, "Some content");
@@ -34,7 +38,13 @@ describe("NoteEditor Component - Unit Tests", () => {
 
   it("triggers file input when clicking on the image placeholder", async () => {
     render(
-      <NoteEditor isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />
+      <NoteEditor 
+        isOpen={true} 
+        onClose={mockOnClose} 
+        onSave={mockOnSave} 
+        initialTitle=""
+        initialContent="" 
+      />
     );
 
     const fileInput = screen.getByTestId("file-input") as HTMLInputElement;
@@ -44,5 +54,33 @@ describe("NoteEditor Component - Unit Tests", () => {
     fireEvent.click(imagePlaceholder);
 
     expect(clickSpy).toHaveBeenCalled();
+  });
+
+  it("renders via portal and allows editing", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn();
+
+    render(
+      <NoteEditor
+        isOpen={true}
+        onSave={onSave}
+        onClose={vi.fn()}
+        initialTitle="Old Title"
+        initialContent="Old text"
+      />
+    );
+
+    const textarea = screen.getByPlaceholderText(/start typing/i);
+    await user.clear(textarea);
+    await user.type(textarea, "New node knowledge");
+
+    const closeBtn = screen.getByLabelText(/close note/i);
+    await user.click(closeBtn);
+
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.stringContaining("New node knowledge"),
+      })
+    );
   });
 });
