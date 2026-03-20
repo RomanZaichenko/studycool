@@ -1,63 +1,53 @@
 import { test, expect } from "@playwright/test";
-import path from "path";
 
 test.describe("Note Editor E2E Flow", () => {
-  test("should create a note with image, save it on close, and persist data", async ({
+  test("should open note editor on node click and save content to that specific node", async ({
     page,
   }) => {
-    await page.goto("http://localhost:3000/project-area/1");
+    await page.goto("http://localhost:3000/map-area/1");
 
-    await page.getByRole("button", { name: /add note/i }).click();
+    const canvas = page.locator(".react-flow__renderer");
+    await canvas.click({ button: "right", position: { x: 300, y: 300 } });
 
-    const titleInput = page.getByPlaceholder("Note title");
-    const contentInput = page.getByPlaceholder("Start typing your note...");
+    const node = page.locator(".react-flow__node").first();
+    await node.click();
 
-    await titleInput.fill("Research on AI Ethics");
-    await contentInput.fill(
-      "This note contains important thoughts on future regulations."
-    );
+    const editor = page.locator('div[role="dialog"]');
+    await expect(editor).toBeVisible();
 
-    const fileChooserPromise = page.waitForEvent("filechooser");
-    await page.getByTestId("image-placeholder").click();
-    const fileChooser = await fileChooserPromise;
-
-    await fileChooser.setFiles(
-      path.join(__dirname, "test-assets/sample-image.png")
-    );
-
-    const previewImage = page.locator('[data-testid="image-placeholder"] img');
-    await expect(previewImage).toBeVisible();
-
-    await page.getByLabel("Close note").click();
-
-    const noteCard = page.locator("text=Research on AI Ethics");
-    await expect(noteCard).toBeVisible();
-
-    await noteCard.click();
-
-    await expect(page.getByPlaceholder("Note title")).toHaveValue(
-      "Research on AI Ethics"
-    );
-    await expect(
-      page.getByPlaceholder("Start typing your note...")
-    ).toHaveValue(
-      "This note contains important thoughts on future regulations."
-    );
-    await expect(
-      page.locator('[data-testid="image-placeholder"] img')
-    ).toBeVisible();
-  });
-
-  test("should not save note if title is empty (validation check)", async ({
-    page,
-  }) => {
-    await page.goto("http://localhost:3000/project-area/1");
-    await page.getByRole("button", { name: /add note/i }).click();
+    await page.getByPlaceholder("Note title").fill("Knowledge Node 1");
     await page
       .getByPlaceholder("Start typing your note...")
-      .fill("Ghost note content");
+      .fill("This info is linked to node 1");
 
     await page.getByLabel("Close note").click();
-    await expect(page.locator("text=Ghost note content")).not.toBeVisible();
+
+    await expect(editor).not.toBeVisible();
+    await expect(canvas).toBeVisible();
+
+    await node.click();
+    await expect(page.getByPlaceholder("Note title")).toHaveValue(
+      "Knowledge Node 1"
+    );
   });
+
+  test('should insert image directly into the text content', async ({ page }) => {
+  await page.goto('http://localhost:3000/map-area/1');
+  await page.locator('.react-flow__node').first().click();
+
+
+  const editor = page.locator('[contenteditable="true"]');
+  
+  await editor.fill('This is my text before the image.');
+
+  const fileChooserPromise = page.waitForEvent('filechooser');
+  await page.getByLabel('Insert image').click(); 
+  const fileChooser = await fileChooserPromise;
+  await fileChooser.setFiles('./e2e/assets/test-image.png');
+
+
+  await expect(editor.locator('img')).toBeVisible();
+  
+  await page.getByLabel('Close note').click();
+});
 });

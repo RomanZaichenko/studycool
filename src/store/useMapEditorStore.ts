@@ -53,10 +53,15 @@ interface MapEditorState {
   nodes: Node[];
   edges: Edge[];
   currentMapId: number | null;
+  isNoteEditorOpen: boolean;
+  selectedNodeId: string | null;
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection | Edge) => void;
   onEdgesDelete: OnEdgesDelete;
+  openNoteEditor: (nodeId: string) => void;
+  closeNoteEditor: () => void;
+  updateNodeNote: (nodeId: string, title: string, content: string) => void;
 
   addNodeAtPosition: (position: XYPosition) => void;
   createNodeFromConnection: (
@@ -80,6 +85,8 @@ export const useMapEditorStore = create<MapEditorState>((set, get) => ({
   nodes: [],
   edges: [],
   currentMapId: null,
+  isNoteEditorOpen: false,
+  selectedNodeId: null,
 
   onNodesChange: (changes) => {
     set({ nodes: applyNodeChanges(changes, get().nodes) });
@@ -140,6 +147,35 @@ export const useMapEditorStore = create<MapEditorState>((set, get) => ({
       }
     });
     set({ nodes: currentNodes });
+  },
+
+  openNoteEditor: (nodeId) =>
+    set({
+      selectedNodeId: nodeId,
+      isNoteEditorOpen: true,
+    }),
+
+  closeNoteEditor: () =>
+    set({
+      selectedNodeId: null,
+      isNoteEditorOpen: false,
+    }),
+
+  updateNodeNote: (nodeId, title, content) => {
+    set((state) => ({
+      nodes: state.nodes.map((node) =>
+        node.id === nodeId
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                label: title,
+                noteContent: content,
+              },
+            }
+          : node
+      ),
+    }));
   },
 
   addNodeAtPosition: (position) => {

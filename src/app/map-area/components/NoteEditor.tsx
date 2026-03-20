@@ -1,130 +1,140 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { EditorContent } from "@tiptap/react";
+import { createPortal } from "react-dom";
+import { ComboBox } from "./ComboBox"; 
+import { useNoteEditorLogic } from "../hooks/useNoteEditor"; 
 
 interface NoteEditorProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (noteData: {
-    title: string;
-    content: string;
-    image: File | null;
-  }) => void;
-  initialTitle?: string;
-  initialContent?: string;
+  onSave: (data: { title: string; content: string }) => void;
+  initialTitle: string;
+  initialContent: string;
 }
 
 export default function NoteEditor({
   isOpen,
   onClose,
   onSave,
-  initialTitle = "",
-  initialContent = "",
+  initialTitle,
+  initialContent,
 }: NoteEditorProps) {
-  const [title, setTitle] = useState(initialTitle);
-  const [content, setContent] = useState(initialContent);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const { 
+    editor, 
+    title, 
+    setTitle, 
+    handleImageUpload, 
+    currentFontSize, 
+    currentFontFamily 
+  } = useNoteEditorLogic(initialTitle, initialContent, isOpen);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  if (!isOpen || !editor) return null;
 
-  if (!isOpen) return null;
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setSelectedImage(imageUrl);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="relative flex min-h-[600px] w-full max-w-4xl rounded-sm bg-[#f0f0f0] p-6 shadow-2xl">
-        <button
-          onClick={onClose}
-          aria-label="Close note"
-          className="absolute top-4 right-4 text-gray-400 transition-colors hover:text-gray-600"
+  return createPortal(
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/10 backdrop-blur-sm p-4 font-sans">
+      <div className="relative flex h-[92vh] w-full max-w-6xl bg-[#F0F0F0] p-8 shadow-2xl rounded-sm border border-gray-200">
+        
+        <button 
+          onClick={() => { onSave({ title, content: editor.getHTML() }); onClose(); }}
+          className="absolute top-6 right-8 text-gray-300 hover:text-gray-500 transition-colors z-10"
         >
-          <svg
-            className="h-8 w-8"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
+          <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        <div className="flex flex-1 flex-col gap-4 pr-6">
-          <input
-            type="text"
-            placeholder="Note title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full border-b border-transparent bg-white p-4 text-3xl font-bold text-gray-800 outline-none focus:border-gray-300"
-          />
-
-          <div className="flex flex-1 flex-col gap-6 overflow-y-auto bg-white p-6">
-            <textarea
-              placeholder="Start typing your note..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="font-inter w-full flex-1 resize-none text-base text-gray-700 outline-none"
-            />
-
-            <div
-              data-testid="image-placeholder"
-              onClick={() => fileInputRef.current?.click()}
-              className="relative flex h-64 w-full cursor-pointer items-center justify-center overflow-hidden bg-[#d9d9d9] transition-colors hover:bg-gray-300"
-            >
-              {selectedImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={selectedImage}
-                  alt="Uploaded content"
-                  className="h-full w-full object-contain"
-                />
-              ) : (
-                <span className="font-medium text-gray-500 opacity-0 transition-opacity hover:opacity-100">
-                  Click to add image
-                </span>
-              )}
-            </div>
-
+        <div className="flex w-full gap-8 overflow-hidden">
+          
+          <div className="flex-1 flex flex-col gap-6 overflow-hidden">
             <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              data-testid="file-input"
-              ref={fileInputRef}
-              onChange={handleImageUpload}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full bg-white p-6 text-4xl font-bold outline-none shadow-sm placeholder:text-gray-300 text-gray-800 border-none focus:ring-0"
+              placeholder="Note title"
             />
-          </div>
-        </div>
 
-        <div className="flex w-16 flex-col gap-3 pt-16">
-          <div className="cursor-pointer rounded bg-white p-2 text-center text-xs text-gray-600 shadow-sm">
-            14px
-          </div>
-          <div className="cursor-pointer rounded bg-white p-2 text-center text-xs text-gray-600 shadow-sm">
-            Times
+            <div 
+              className="flex-1 bg-white overflow-y-auto shadow-sm border border-gray-100 scrollbar-thin scrollbar-thumb-gray-200 cursor-text"
+              onClick={() => editor.chain().focus().run()}
+            >
+              <EditorContent editor={editor} />
+            </div>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-2 rounded bg-white p-2 shadow-sm">
-            <button className="h-5 w-5 font-bold hover:bg-gray-100">B</button>
-            <button className="h-5 w-5 italic hover:bg-gray-100">I</button>
-            <button className="h-5 w-5 underline hover:bg-gray-100">U</button>
-            <button className="h-5 w-5 font-serif text-red-500 hover:bg-gray-100">
-              A
+          <div className="w-36 flex flex-col mt-12 gap-3 pt-2">
+            
+            <ComboBox
+              placeholder="Size"
+              value={currentFontSize}
+              autoSuffix="px"
+              options={["12px", "14px", "16px", "18px", "20px", "24px", "32px"]}
+              onChange={(val) => editor.chain().focus().setFontSize(val).run()}
+            />
+
+            <ComboBox
+              placeholder="Font Name"
+              value={currentFontFamily}
+              options={["Inter", "Arial", "Times New Roman", "Courier New", "Georgia", "Verdana"]}
+              onChange={(val) => editor.chain().focus().setFontFamily(val).run()}
+            />
+
+            <div className="grid grid-cols-3 gap-1 bg-white p-1 rounded shadow-sm border border-gray-100">
+              <button 
+                onClick={() => editor.chain().focus().toggleBold().run()}
+                className={`p-2 text-sm font-bold hover:bg-gray-100 rounded flex justify-center text-gray-700 ${editor.isActive('bold') ? 'bg-gray-200' : ''}`}
+              >
+                B
+              </button>
+              
+              <button 
+                onClick={() => editor.chain().focus().toggleItalic().run()}
+                className={`p-2 text-sm italic font-serif hover:bg-gray-100 rounded flex justify-center text-gray-700 ${editor.isActive('italic') ? 'bg-gray-200' : ''}`}
+              >
+                I
+              </button>
+              
+              <button 
+                onClick={() => editor.chain().focus().toggleUnderline().run()}
+                className={`p-2 text-sm underline hover:bg-gray-100 rounded flex justify-center text-gray-700 ${editor.isActive('underline') ? 'bg-gray-200' : ''}`}
+              >
+                U
+              </button>
+              
+              <label className="p-2 text-sm flex items-center justify-center hover:bg-gray-100 rounded cursor-pointer relative">
+                <span className="font-bold border-b-2 border-red-500 leading-none text-gray-700 uppercase">A</span>
+                <input 
+                  type="color" 
+                  className="absolute inset-0 opacity-0 cursor-pointer" 
+                  onInput={(e) => editor.chain().focus().setColor(e.currentTarget.value).run()} 
+                />
+              </label>
+
+              <label className="p-2 text-sm flex items-center justify-center hover:bg-gray-100 rounded cursor-pointer relative">
+                <span className="bg-yellow-200 px-1 leading-none text-[10px] text-gray-800 font-bold uppercase">BG</span>
+                <input 
+                  type="color" 
+                  className="absolute inset-0 opacity-0 cursor-pointer" 
+                  onInput={(e) => editor.chain().focus().toggleHighlight({ color: e.currentTarget.value }).run()} 
+                />
+              </label>
+              
+              <label className="p-2 text-sm flex items-center justify-center hover:bg-gray-100 rounded cursor-pointer">
+                🖼️
+                <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+              </label>
+            </div>
+            
+            <button 
+              onClick={() => editor.chain().focus().unsetAllMarks().run()}
+              className="mt-2 text-[10px] uppercase font-bold text-gray-400 hover:text-red-500 transition-colors"
+            >
+              Clear formatting
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

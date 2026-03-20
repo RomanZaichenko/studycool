@@ -4,7 +4,7 @@ import Projects from "./components/Projects";
 
 export default function Home() {
   return (
-    <div className="mt-6 ml-4 flex">
+    <div className="mt-6 ml-4 flex overflow-x-hidden">
       <Filters />
       <section className="w-full flex-1">
         <RecentMaps />

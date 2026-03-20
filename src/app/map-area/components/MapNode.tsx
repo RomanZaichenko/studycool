@@ -8,9 +8,9 @@ type MapNodeData = Node<{
 
 
 const LEVEL_STYLES: Record<1 | 2 | 3, string> = {
-  1: "text-2xl bg-[var(--node-bg-1)] text-[var(--node-text-1)] border-[var(--node-border-1)] p-5 border-3 font-victor font-black rounded-md z-20",
-  2: "text-xl bg-[var(--node-bg-2)] text-[var(--node-text-2)] border-[var(--node-border-2)] p-4 border-2 font-victor font-bold rounded-md",
-  3: "text-lg bg-[#F9F8FC] text-slate-600 p-3 border font-medium font-victor rounded-md border-[#E4E1EB] bg-opacity-100 ",
+  1: "text-2xl bg-[var(--node-bg-1)] text-[var(--node-text-1)] border-[var(--node-border-1)] p-5 max-w-30 max-h-20 border-3 font-victor font-black rounded-md z-20",
+  2: "text-xl bg-[var(--node-bg-2)] text-[var(--node-text-2)] border-[var(--node-border-2)] p-4 border-2 font-victor font-bold rounded-md max-w-25 max-h-20",
+  3: "text-lg bg-[#F9F8FC] text-slate-600 p-3 border font-medium font-victor rounded-md border-[#E4E1EB] bg-opacity-100 max-w-20 max-h-15",
 };
 
 const HANDLE_CONFIGS = [
@@ -45,7 +45,7 @@ export default function MapNode({ data }: NodeProps<MapNodeData>) {
 
   return (
     <div className={`relative group min-w-[150px] text-center ${componentStyles}`}>
-      {label}
+      <div className="truncate">{label}</div>
 
       {HANDLE_CONFIGS.map(({ id, pos, handleClasses, dotClasses }) => (
         <Fragment key={id}>

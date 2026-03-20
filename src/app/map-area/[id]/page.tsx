@@ -15,6 +15,7 @@ import { useMapEditorStore } from "@/store/useMapEditorStore";
 import { useEffect } from "react";
 import { useMainStore } from "@/store/useMainStore";
 import { useParams } from "next/navigation";
+import NoteEditor from "@/app/map-area/components/NoteEditor";
 
 function MapFlow() {
   const mapLogic = useMapLogic();
@@ -26,6 +27,14 @@ function MapFlow() {
   const onConnect = useMapEditorStore((state) => state.onConnect);
   const onEdgesDelete = useMapEditorStore((state) => state.onEdgesDelete);
 
+  const openNoteEditor = useMapEditorStore((state) => state.openNoteEditor);
+  const isNoteEditorOpen = useMapEditorStore((state) => state.isNoteEditorOpen);
+  const closeNoteEditor = useMapEditorStore((state) => state.closeNoteEditor);
+  const selectedNodeId = useMapEditorStore((state) => state.selectedNodeId);
+  const updateNodeNote = useMapEditorStore((state) => state.updateNodeNote);
+
+  const activeNode = nodes.find((n) => n.id === selectedNodeId);
+
   useEffect(() => {
     if (currentMapId !== null && (nodes.length > 0 || edges.length > 0)) {
       const dataToSave = JSON.stringify({ nodes, edges });
@@ -34,7 +43,7 @@ function MapFlow() {
   }, [nodes, edges, currentMapId]);
 
   return (
-    <div className="h-[90vh] w-[100vw]">
+    <div className="h-full w-full ">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -52,6 +61,7 @@ function MapFlow() {
         isValidConnection={mapLogic.isValidConnection}
         onConnectStart={mapLogic.onConnectStart}
         onConnectEnd={mapLogic.onConnectEnd}
+        onNodeClick={(_, node) => openNoteEditor(node.id)}
         defaultEdgeOptions={{
           type: "bezier",
         }}
@@ -61,6 +71,18 @@ function MapFlow() {
         <Background />
         <Zoomer />
       </ReactFlow>
+
+      <NoteEditor
+        isOpen={isNoteEditorOpen}
+        initialTitle={(activeNode?.data?.label as string) || ""}
+        initialContent={(activeNode?.data?.noteContent as string) || ""}
+        onClose={closeNoteEditor}
+        onSave={(data) => {
+          if (selectedNodeId) {
+            updateNodeNote(selectedNodeId, data.title, data.content);
+          }
+        }}
+      />
     </div>
   );
 }
