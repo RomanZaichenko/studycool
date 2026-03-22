@@ -32,6 +32,7 @@ function MapFlow() {
   const closeNoteEditor = useMapEditorStore((state) => state.closeNoteEditor);
   const selectedNodeId = useMapEditorStore((state) => state.selectedNodeId);
   const updateNodeNote = useMapEditorStore((state) => state.updateNodeNote);
+  const toggleIsNodeStudied = useMapEditorStore((state) => state.toggleIsNodeStudied)
 
   const activeNode = nodes.find((n) => n.id === selectedNodeId);
 
@@ -67,6 +68,10 @@ function MapFlow() {
         }}
         fitView
         panOnScroll
+        onNodeContextMenu={(e, node) => {
+          e.preventDefault();
+          toggleIsNodeStudied(node.id);
+        }}
       >
         <Background />
         <Zoomer />

@@ -4,6 +4,7 @@ import { Fragment } from "react";
 type MapNodeData = Node<{
   label: string;
   level: 1 | 2 | 3;
+  isStudied: boolean;
 }>;
 
 
@@ -36,16 +37,19 @@ const HANDLE_CONFIGS = [
 ] as const;
 
 export default function MapNode({ data }: NodeProps<MapNodeData>) {
-  const { label, level } = data;
+  const { label, level, isStudied } = data;
 
   const componentStyles = LEVEL_STYLES[level];
 
   const invisibleHandleStyle = `!w-0 !h-0 !bg-transparent !border-0 !transform-none pointer-events-auto`;
   const visibleCircleStyle = `absolute w-2 h-2 bg-[#504679] border-2 border-white rounded-full shadow-sm z-40 opacity-0 group-hover:opacity-100 pointer-events-none`;
 
+  const studiedStyles = isStudied ? "opacity-60 grayscale" : "";
+  const textStyles = isStudied ? "line-through text-gray-500" : "";
+
   return (
-    <div className={`relative group min-w-[150px] text-center ${componentStyles}`}>
-      <div className="truncate">{label}</div>
+    <div className={`relative group min-w-[150px] text-center ${componentStyles} ${studiedStyles}`}>
+      <div className={`truncate ${textStyles}`}>{label}</div>
 
       {HANDLE_CONFIGS.map(({ id, pos, handleClasses, dotClasses }) => (
         <Fragment key={id}>

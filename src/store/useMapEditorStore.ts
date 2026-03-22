@@ -62,6 +62,7 @@ interface MapEditorState {
   openNoteEditor: (nodeId: string) => void;
   closeNoteEditor: () => void;
   updateNodeNote: (nodeId: string, title: string, content: string) => void;
+  toggleIsNodeStudied: (nodeId: string) => void;
 
   addNodeAtPosition: (position: XYPosition) => void;
   createNodeFromConnection: (
@@ -177,6 +178,15 @@ export const useMapEditorStore = create<MapEditorState>((set, get) => ({
       ),
     }));
   },
+
+  toggleIsNodeStudied: (nodeId) =>
+    set((state) => ({
+      nodes: state.nodes.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, isStudied: !node.data.isStudied } }
+          : node
+      ),
+    })),
 
   addNodeAtPosition: (position) => {
     const newNode: Node = {
