@@ -12,6 +12,7 @@ import { ChangeEvent, useEffect, useState } from "react";
 
 export function useNoteEditorLogic(initialTitle: string, initialContent: string, isOpen: boolean) {
   const [title, setTitle] = useState(initialTitle);
+  const [isOpenExport, setIsOpenExport] = useState<boolean>(false);
 
   const editor = useEditor({
     extensions: [
@@ -35,7 +36,6 @@ export function useNoteEditorLogic(initialTitle: string, initialContent: string,
     },
   });
 
-  // Синхронізація контенту при зміні нотатки
   useEffect(() => {
     if (isOpen && editor) {
       editor.commands.setContent(initialContent);
@@ -66,5 +66,7 @@ export function useNoteEditorLogic(initialTitle: string, initialContent: string,
     handleImageUpload,
     currentFontSize,
     currentFontFamily,
+    isOpenExport,
+    setIsOpenExport
   };
 }

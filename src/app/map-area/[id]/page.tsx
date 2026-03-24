@@ -16,6 +16,7 @@ import { useEffect } from "react";
 import { useMainStore } from "@/store/useMainStore";
 import { useParams } from "next/navigation";
 import NoteEditor from "@/app/map-area/components/NoteEditor";
+import { ExportModal } from "../components/ExportModal";
 
 function MapFlow() {
   const mapLogic = useMapLogic();
@@ -32,7 +33,9 @@ function MapFlow() {
   const closeNoteEditor = useMapEditorStore((state) => state.closeNoteEditor);
   const selectedNodeId = useMapEditorStore((state) => state.selectedNodeId);
   const updateNodeNote = useMapEditorStore((state) => state.updateNodeNote);
-  const toggleIsNodeStudied = useMapEditorStore((state) => state.toggleIsNodeStudied)
+  const toggleIsNodeStudied = useMapEditorStore(
+    (state) => state.toggleIsNodeStudied
+  );
 
   const activeNode = nodes.find((n) => n.id === selectedNodeId);
 
@@ -44,7 +47,7 @@ function MapFlow() {
   }, [nodes, edges, currentMapId]);
 
   return (
-    <div className="h-full w-full ">
+    <div className="h-full w-full">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -75,6 +78,12 @@ function MapFlow() {
       >
         <Background />
         <Zoomer />
+        <button
+          onClick={() => mapLogic.setIsOpenExport(true)}
+          className="t-20 absolute z-50 mt-2 text-[16px] font-bold text-gray-400 uppercase transition-colors hover:text-purple-500"
+        >
+          Export map
+        </button>
       </ReactFlow>
 
       <NoteEditor
@@ -87,6 +96,12 @@ function MapFlow() {
             updateNodeNote(selectedNodeId, data.title, data.content);
           }
         }}
+      />
+
+      <ExportModal
+        isOpen={mapLogic.isOpenExport}
+        onClose={() => mapLogic.setIsOpenExport(false)}
+        exportType="map"
       />
     </div>
   );

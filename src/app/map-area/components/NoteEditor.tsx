@@ -3,7 +3,8 @@
 import { EditorContent } from "@tiptap/react";
 import { createPortal } from "react-dom";
 import { ComboBox } from "./ComboBox";
-import { useNoteEditorLogic } from "../hooks/useNoteEditor";
+import { useNoteEditorLogic } from "../hooks/useNoteEditor";  
+import { ExportModal } from "./ExportModal";
 
 interface NoteEditorProps {
   isOpen: boolean;
@@ -27,7 +28,11 @@ export default function NoteEditor({
     handleImageUpload,
     currentFontSize,
     currentFontFamily,
+    isOpenExport,
+    setIsOpenExport
   } = useNoteEditorLogic(initialTitle, initialContent, isOpen);
+
+  
 
   if (!isOpen || !editor) return null;
 
@@ -171,9 +176,21 @@ export default function NoteEditor({
             >
               Clear formatting
             </button>
+
+            <button
+              onClick={() => setIsOpenExport(true)}
+              className="mt-2 text-[10px] font-bold text-gray-400 uppercase transition-colors hover:text-purple-500"
+            >
+              Export note
+            </button>
           </div>
         </div>
       </div>
+      <ExportModal
+        isOpen={isOpenExport}
+        onClose={() => setIsOpenExport(false)}
+        exportType="note"
+      />
     </div>,
     document.body
   );
