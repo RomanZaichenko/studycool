@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Searcher from "./Searcher";
 import { useRouter } from "next/navigation";
+import { AIChatHeaderButton } from "./AIChatHeaderButton";
 
 export function Header() {
   const router = useRouter();
@@ -17,8 +18,10 @@ export function Header() {
         className="ml-10 cursor-pointer"
         onClick={() => router.push("/")}
       />
-
-      <Searcher />
+      <div className="flex pr-3">
+        <Searcher />
+        <AIChatHeaderButton />
+      </div>
     </header>
   );
 }
