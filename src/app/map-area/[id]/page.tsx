@@ -1,6 +1,7 @@
 "use client";
 
-import Zoomer from "../components/Zoomer";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import {
   ReactFlow,
   Background,
@@ -8,18 +9,21 @@ import {
   ReactFlowProvider,
   Node,
   Edge,
+  Panel,
 } from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
-import { useMapLogic } from "../hooks/useMapLogic";
-import { useMapEditorStore } from "@/store/useMapEditorStore";
-import { useEffect } from "react";
-import { useMainStore } from "@/store/useMainStore";
-import { useParams } from "next/navigation";
+
+import Zoomer from "../components/Zoomer";
 import NoteEditor from "@/app/map-area/components/NoteEditor";
 import { ExportModal } from "../components/ExportModal";
+import { ImportModal } from "../components/ImportModal"; // Твій новий компонент
+
+import { useMapLogic } from "../hooks/useMapLogic";
+import { useMapEditorStore } from "@/store/useMapEditorStore";
+import { useMainStore } from "@/store/useMainStore";
 
 function MapFlow() {
   const mapLogic = useMapLogic();
+
   const currentMapId = useMapEditorStore((state) => state.currentMapId);
   const nodes = useMapEditorStore((state) => state.nodes);
   const edges = useMapEditorStore((state) => state.edges);
@@ -38,6 +42,7 @@ function MapFlow() {
   );
 
   const activeNode = nodes.find((n) => n.id === selectedNodeId);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   useEffect(() => {
     if (currentMapId !== null && (nodes.length > 0 || edges.length > 0)) {
@@ -45,6 +50,10 @@ function MapFlow() {
       localStorage.setItem(`map_data_${currentMapId}`, dataToSave);
     }
   }, [nodes, edges, currentMapId]);
+
+  const handleImportText = (text: string) => {
+    console.log("Отримано текст для імпорту:", text);
+  };
 
   return (
     <div className="h-full w-full">
@@ -66,9 +75,7 @@ function MapFlow() {
         onConnectStart={mapLogic.onConnectStart}
         onConnectEnd={mapLogic.onConnectEnd}
         onNodeClick={(_, node) => openNoteEditor(node.id)}
-        defaultEdgeOptions={{
-          type: "bezier",
-        }}
+        defaultEdgeOptions={{ type: "bezier" }}
         fitView
         panOnScroll
         onNodeContextMenu={(e, node) => {
@@ -78,12 +85,22 @@ function MapFlow() {
       >
         <Background />
         <Zoomer />
-        <button
-          onClick={() => mapLogic.setIsOpenExport(true)}
-          className="t-20 absolute z-50 mt-2 text-[16px] font-bold text-gray-400 uppercase transition-colors hover:text-purple-500"
-        >
-          Export map
-        </button>
+
+        <Panel position="top-right" className="flex gap-3 p-4">
+          <button
+            onClick={() => setIsImportModalOpen(true)}
+            className="rounded-sm bg-white px-5 py-2.5 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+          >
+            Import
+          </button>
+
+          <button
+            onClick={() => mapLogic.setIsOpenExport(true)}
+            className="rounded-sm bg-gray-800 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-gray-700"
+          >
+            Export
+          </button>
+        </Panel>
       </ReactFlow>
 
       <NoteEditor
@@ -103,6 +120,12 @@ function MapFlow() {
         onClose={() => mapLogic.setIsOpenExport(false)}
         exportType="map"
       />
+
+      <ImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImport={handleImportText}
+      />
     </div>
   );
 }
@@ -110,6 +133,7 @@ function MapFlow() {
 export default function MapArea() {
   const params = useParams();
   const mapId = Number(params.id);
+
   const loadMapData = useMapEditorStore((state) => state.loadMapData);
   const resetMap = useMapEditorStore((state) => state.resetMap);
   const updateLastOpened = useMainStore((state) => state.updateMapAccessTime);
@@ -117,6 +141,7 @@ export default function MapArea() {
   useEffect(() => {
     if (!mapId) return;
     updateLastOpened(mapId);
+
     const savedMapData = localStorage.getItem(`map_data_${mapId}`);
     let fetchedNodes: Node[] = [];
     let fetchedEdges: Edge[] = [];
