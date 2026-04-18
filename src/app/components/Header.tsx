@@ -13,7 +13,7 @@ export function Header() {
   const { isAuthenticated, user, openSignInModal, logout } = useAuthStore();
 
   return (
-    <header className="bg-primary-color fixed top-0 left-0 z-[2000] flex h-16 w-full items-center justify-between px-6 shadow-sm">
+    <header className="bg-primary-color fixed top-0 left-0 z-[100] flex h-16 w-full items-center justify-between px-6 shadow-sm">
       <Image
         src={"/icons/home.svg"}
         alt="Home"

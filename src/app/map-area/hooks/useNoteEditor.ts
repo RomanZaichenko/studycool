@@ -13,6 +13,7 @@ import { ChangeEvent, useEffect, useState } from "react";
 export function useNoteEditorLogic(initialTitle: string, initialContent: string, isOpen: boolean) {
   const [title, setTitle] = useState(initialTitle);
   const [isOpenExport, setIsOpenExport] = useState<boolean>(false);
+  const [, setForceUpdate] = useState({});
 
   const editor = useEditor({
     extensions: [
@@ -33,6 +34,12 @@ export function useNoteEditorLogic(initialTitle: string, initialContent: string,
       attributes: {
         class: "prose focus:outline-none min-h-full max-w-none p-12 bg-white text-gray-800",
       },
+    },
+    onTransaction: () => {
+      setForceUpdate({});
+    },
+    onSelectionUpdate: () => {
+      setForceUpdate({});
     },
   });
 
