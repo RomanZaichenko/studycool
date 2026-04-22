@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import "./ui/globals.css";
 import { Header } from "@/app/components/Header";
+import { SettingsModal } from "@/app/components/SettingsModal";
 
 export const metadata: Metadata = {
   title: "StudyCool",
@@ -19,6 +20,9 @@ export default function HeaderLayout({
         <main className="flex h-screen w-screen flex-col pt-16">
           {children}
         </main>
+        
+        {/* Компонент налаштувань розміщується тут */}
+        <SettingsModal />
       </body>
     </html>
   );
