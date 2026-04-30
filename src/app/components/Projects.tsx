@@ -9,33 +9,54 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMainStore } from "@/store/useMainStore";
 import Project from "../interfaces/Project";
+import SortDropdown, { SortOption } from "./SortDropdown";
 
 export default function Projects() {
   const projects = useMainStore((state) => state.projects);
   const addProject = useMainStore((state) => state.addProject);
   const selectedFilters = useMainStore((state) => state.selectedFilters);
+
   const [isCreatorVisible, setIsCreatorVisible] = useState<boolean>(false);
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+  const [sortBy, setSortBy] = useState<SortOption>("recent");
 
   const filteredProjects = useMemo(() => {
     if (selectedFilters.length === 0) return projects;
-
     return projects.filter((project) =>
       selectedFilters.some((filter) => project.filters?.includes(filter))
     );
   }, [projects, selectedFilters]);
 
-  const sortedProjects = [...filteredProjects].sort(
-    (a: Project, b: Project) => {
-      if (a.title === "General") return 1;
-      if (b.title === "General") return -1;
+  const sortedProjects = useMemo(() => {
+    return [...filteredProjects].sort((a: Project, b: Project) => {
+      if (a.title === "General" || a.title === "Загальний") return 1;
+      if (b.title === "General" || b.title === "Загальний") return -1;
 
-      return b.id - a.id;
-    }
-  );
+      switch (sortBy) {
+        case "name-asc":
+          return a.title.localeCompare(b.title);
+        case "name-desc":
+          return b.title.localeCompare(a.title);
+        case "newest":
+        case "recent":
+          return b.id - a.id;
+        case "oldest":
+          return a.id - b.id;
+        default:
+          return b.id - a.id;
+      }
+    });
+  }, [filteredProjects, sortBy]);
 
   return (
-    <SectionWrapper title="Projects" isLineShown={false}>
-      <div className="mt-4 flex flex-wrap items-start justify-center gap-4 sm:justify-start sm:gap-6">
+    <SectionWrapper
+      title="Projects"
+      isLineShown={false}
+      isCollapsed={isCollapsed}
+      onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+      headerControls={<SortDropdown value={sortBy} onChange={setSortBy} />}
+    >
+      <div className="flex w-full flex-wrap items-start gap-4 sm:gap-6">
         <AddButton
           onClick={() => setIsCreatorVisible(true)}
           aria-label="Create new project"
