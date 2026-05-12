@@ -6,6 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function convertHtmlToText(html: string): string {
-  const regex = /<[^>]+>/g;
-  return html.replace(regex, "");
+  if (!html) return "";
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  return doc.body.textContent || "";
 }
