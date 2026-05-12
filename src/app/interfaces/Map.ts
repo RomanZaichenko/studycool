@@ -1,3 +1,5 @@
+import { Node as FlowNode } from "@xyflow/react";
+
 export default interface Map {
   id: number;
   title: string;
@@ -6,4 +8,5 @@ export default interface Map {
   createdAt: Date;
   lastOpened: Date;
   miniMapIcon?: string;
+  nodes?: FlowNode[];
 }

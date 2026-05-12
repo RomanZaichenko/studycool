@@ -2,11 +2,13 @@ import { StateCreator } from "zustand";
 import Map from "@/app/interfaces/Map";
 import MapDto from "@/app/interfaces/MapDto";
 import { GENERAL_PROJECT_ID } from "./createProjectsSlice";
+import { Node as FlowNode } from "@xyflow/react";
 
 export interface MapsSlice {
   maps: Map[];
   addMap: (projectData : MapDto) => void;
   updateMapAccessTime: (id: number) => void;
+  updateMapNodes: (id: number, nodes: FlowNode[]) => void; 
 }
 
 export const createMapsSlice: StateCreator<MapsSlice> = (set) => ({
@@ -33,4 +35,12 @@ export const createMapsSlice: StateCreator<MapsSlice> = (set) => ({
         map.id === id ? { ...map, lastOpened: new Date() } : map
       )
     })), 
+
+  updateMapNodes: (mapId, nodes) => {
+    set((state) => ({
+      maps: state.maps.map((m) =>
+        m.id === mapId ? { ...m, nodes: nodes } : m
+      ),
+    }));
+  },
 });
