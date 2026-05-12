@@ -1,5 +1,7 @@
 "use client";
 
+import { useMapEditorStore } from "@/store/useMapEditorStore";
+import { useMainStore } from "@/store/useMainStore";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -8,6 +10,43 @@ interface ExportModalProps {
   onClose: () => void;
   exportType: "map" | "note";
 }
+
+const exportStudyCoolFile = (fileName: string) => {
+  const nodes = useMapEditorStore.getState().nodes;
+  const edges = useMapEditorStore.getState().edges;
+
+  const metaData = {
+    version: "1.0",
+    mapTitle: fileName,
+    nodes: nodes,
+    edges: edges,
+    date: new Date().toISOString(),
+  };
+
+  const jsonData = JSON.stringify(metaData, null, 2);
+  const blob = new Blob([jsonData], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${fileName.replace(/\s+/g, "_")}.studycool`;
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+};
+
+const triggerExport = (exportType: string, fileName: string) => {
+  switch (exportType) {
+    case "studycool":
+      exportStudyCoolFile(fileName);
+      break;
+    default:
+      console.warn(`Export for .${exportType} is not implemented yet.`);
+  }
+};
 
 const MAP_CATEGORIES = [
   {
@@ -53,12 +92,14 @@ const NOTE_CATEGORIES = [
 
 export function ExportModal({ isOpen, onClose, exportType }: ExportModalProps) {
   const [isMounted, setIsMounted] = useState(false);
-
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedExt, setSelectedExt] = useState("");
 
+  const currentMapId = useMapEditorStore((state) => state.currentMapId);
+  const maps = useMainStore((state) => state.maps);
+
   const categories = exportType === "map" ? MAP_CATEGORIES : NOTE_CATEGORIES;
-  const title = exportType === "map" ? "Export Mind Map" : "Export Note";
+  const modalTitle = exportType === "map" ? "Export Mind Map" : "Export Note";
 
   useEffect(() => {
     if (isOpen) {
@@ -80,9 +121,10 @@ export function ExportModal({ isOpen, onClose, exportType }: ExportModalProps) {
   };
 
   const handleExport = () => {
-    console.log(
-      `Starting export: Category - ${selectedCategory}, Format - .${selectedExt}`
-    );
+    const currentMap = maps.find((m) => m.id === currentMapId);
+    const fileName = currentMap?.title || "My_Map";
+    
+    triggerExport(selectedExt, fileName);
     onClose();
   };
 
@@ -111,7 +153,7 @@ export function ExportModal({ isOpen, onClose, exportType }: ExportModalProps) {
           </svg>
         </button>
 
-        <h2 className="mb-8 text-4xl font-bold text-gray-800">{title}</h2>
+        <h2 className="mb-8 text-4xl font-bold text-gray-800">{modalTitle}</h2>
 
         <div className="mb-8 grid grid-cols-2 gap-4">
           {categories.map((cat) => (
