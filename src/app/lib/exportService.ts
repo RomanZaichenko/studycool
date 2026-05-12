@@ -1,9 +1,12 @@
 import { Node, Edge } from "@xyflow/react";
 import { convertHtmlToText } from "./utils";
+import TurndownService from "turndown";
+import { setFiles } from "@testing-library/user-event/dist/cjs/utils/index.js";
 
 export interface ParsedNode {
   title: string;
   content: string;
+  rawContent: string;
   depth: number;
 }
 
@@ -41,6 +44,7 @@ const parseGraph = (nodes: Node[], edges: Edge[]): GraphData => {
     hierarchical.push({
       title: (node.data?.label as string) || "Нотатка без назви",
       content: convertHtmlToText((node.data?.noteContent as string) || ""),
+      rawContent: (node.data?.noteContent as string) || "",
       depth,
     });
 
@@ -55,6 +59,7 @@ const parseGraph = (nodes: Node[], edges: Edge[]): GraphData => {
       orphans.push({
         title: (n.data?.label as string) || "Нотатка без назви",
         content: convertHtmlToText((n.data?.noteContent as string) || ""),
+        rawContent: (n.data?.noteContent as string) || "",
         depth: 1,
       });
     }
@@ -108,6 +113,62 @@ const formatAsTxt = (fileName: string, data: GraphData): Blob => {
   return new Blob([text], { type: "text/plain; charset=utf-8" });
 };
 
+const formatAsMd = (fileName: string, data: GraphData): Blob => {
+  const turndownService = new TurndownService({
+    headingStyle: "atx",
+    codeBlockStyle: "fenced",
+  });
+
+  turndownService.addRule("images", {
+    filter: "img",
+    replacement: (content, node) => {
+      const img = node as HTMLElement;
+      const src = img.getAttribute("src") || "";
+      const alt = img.getAttribute("alt") || "";
+
+      if (src.startsWith("blob:")) {
+        return `\n*[Local image: ${alt} (not exported)]*\n`;
+      }
+      return `\n![${alt}](${src})\n`;
+    }
+  });
+
+
+  let md = `# ${fileName}\n\n`;
+
+  data.hierarchical.forEach((node) => {
+    let prefix = "";
+    let suffix = "";
+
+    if (node.depth === 1) prefix = "# ";
+    else if (node.depth === 2) prefix = "## ";
+    else if (node.depth === 3) prefix = "### ";
+    else {
+      prefix = "-**";
+      suffix = "**";  
+    }
+
+    md += `${prefix}${node.title}${suffix}\n\n`;
+
+    if (node.rawContent.trim() ) {
+      const mdContent = turndownService.turndown(node.rawContent);
+      md += `${mdContent}\n\n`;
+    }
+  });
+
+  if (data.orphans.length > 0) {
+    md += `\n## Orphan notes\n\n`;
+    data.orphans.forEach((node) => {
+      md += `### ${node.title}\n\n`;
+      if (node.rawContent.trim()) {
+        md += `${turndownService.turndown(node.rawContent)}\n\n`;
+      }
+    });
+  }
+
+  return new Blob([md], { type: "text/markdown; charset=utf-8" });
+};
+
 export const processExport = (
   format: string,
   fileName: string,
@@ -122,9 +183,15 @@ export const processExport = (
       blob = formatAsStudyCool(safeFileName, nodes, edges);
       break;
     case "txt":
+    case "md": {
       const parsedData = parseGraph(nodes, edges);
-      blob = formatAsTxt(safeFileName, parsedData);
+      if (format === "txt") {
+        blob = formatAsTxt(safeFileName, parsedData);
+      } else {
+        blob = formatAsMd(safeFileName, parsedData);
+      }
       break;
+    }
     default:
       throw new Error("Unsupported export format");
   }
