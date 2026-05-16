@@ -1,18 +1,18 @@
 import { type Node as FlowNode, Edge } from "@xyflow/react";
 import { convertHtmlToText } from "./utils";
 import TurndownService from "turndown";
-import {
-  Document,
-  Packer,
-  Paragraph,
-  TextRun,
-  HeadingLevel,
+import { 
+  Document as DocxDocument, 
+  Packer, 
+  Paragraph, 
+  TextRun, 
+  HeadingLevel, 
   ImageRun,
   UnderlineType,
-  type IRunOptions,
+  type IRunOptions 
 } from "docx";
 import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
+import { toBlob, toCanvas } from "html-to-image";
 
 export interface ParsedNode {
   title: string;
@@ -26,35 +26,26 @@ export interface GraphData {
   orphans: ParsedNode[];
 }
 
+
 const rgbToHex = (rgb: string): string | undefined => {
-  const match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-  if (!match) {
-    if (rgb.startsWith("#")) return rgb.replace("#", "");
-    return undefined;
-  }
-  const r = parseInt(match[1]).toString(16).padStart(2, "0");
-  const g = parseInt(match[2]).toString(16).padStart(2, "0");
-  const b = parseInt(match[3]).toString(16).padStart(2, "0");
+  const match = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)$/);
+  if (!match) return rgb.startsWith('#') ? rgb.replace('#', '') : undefined;
+  
+  const r = parseInt(match[1]).toString(16).padStart(2, '0');
+  const g = parseInt(match[2]).toString(16).padStart(2, '0');
+  const b = parseInt(match[3]).toString(16).padStart(2, '0');
   return (r + g + b).toUpperCase();
 };
 
 const resolveColorToRGB = (colorStr: string): string => {
-  if (!colorStr || colorStr === "none" || colorStr === "transparent")
-    return "transparent";
-  if (
-    !colorStr.includes("oklch") &&
-    !colorStr.includes("oklab") &&
-    !colorStr.includes("color(")
-  ) {
-    return colorStr;
-  }
-
-  const canvas = document.createElement("canvas");
-  canvas.width = 1;
-  canvas.height = 1;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return colorStr;
-
+  if (!colorStr || colorStr === 'none' || colorStr === 'transparent') return 'transparent';
+  if (!/(oklch|oklab|lab|lch|color)\(/i.test(colorStr)) return colorStr;
+  
+  const canvas = document.createElement('canvas');
+  canvas.width = 1; canvas.height = 1;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return 'rgb(0,0,0)';
+  
   ctx.fillStyle = colorStr;
   ctx.fillRect(0, 0, 1, 1);
   const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
@@ -64,125 +55,85 @@ const resolveColorToRGB = (colorStr: string): string => {
 const downloadBlob = (blob: Blob, fullFileName: string) => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
-  link.href = url;
-  link.download = fullFileName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  link.href = url; link.download = fullFileName;
+  document.body.appendChild(link); link.click();
+  document.body.removeChild(link); URL.revokeObjectURL(url);
 };
 
-const fetchImageDataAndSize = async (
-  src: string
-): Promise<{ buffer: ArrayBuffer; width: number; height: number } | null> => {
+const fetchImageDataAndSize = async (src: string): Promise<{ buffer: ArrayBuffer; width: number; height: number } | null> => {
   try {
     const res = await fetch(src);
     const buffer = await res.arrayBuffer();
-
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
-        let w = img.width;
-        let h = img.height;
+        let width = img.width, height = img.height;
         const maxWidth = 550;
-        if (w > maxWidth) {
-          h = Math.round((maxWidth / w) * h);
-          w = maxWidth;
-        }
-        resolve({ buffer, width: w, height: h });
+        if (width > maxWidth) { height = Math.round((maxWidth / width) * height); width = maxWidth; }
+        resolve({ buffer, width, height });
       };
       img.onerror = () => resolve(null);
       img.src = src;
     });
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 };
 
-const processHtmlNode = async (
-  node: Node,
-  format: IRunOptions = {}
-): Promise<(TextRun | ImageRun)[]> => {
+const processHtmlNode = async (node: Node, format: IRunOptions = {}): Promise<(TextRun | ImageRun)[]> => {
   const runs: (TextRun | ImageRun)[] = [];
-
   if (node.nodeType === Node.TEXT_NODE) {
     const text = node.textContent;
-    if (text && text.trim() !== "") {
-      runs.push(new TextRun({ ...format, text }));
-    }
+    if (text && text.trim() !== "") runs.push(new TextRun({ ...format, text }));
   } else if (node.nodeType === Node.ELEMENT_NODE) {
-    const el = node as HTMLElement;
-    const tag = el.tagName.toLowerCase();
+    const element = node as HTMLElement;
+    const tag = element.tagName.toLowerCase();
 
     if (tag === "img") {
-      const src = (el as HTMLImageElement).src;
+      const src = (element as HTMLImageElement).src;
       const imgData = await fetchImageDataAndSize(src);
-      if (imgData) {
-        runs.push(
-          new ImageRun({
-            data: imgData.buffer,
-            transformation: { width: imgData.width, height: imgData.height },
-            type: "png",
-          })
-        );
-      }
+      if (imgData) runs.push(new ImageRun({ data: imgData.buffer, transformation: { width: imgData.width, height: imgData.height }, type: "png" }));
     } else {
       let nextFormat: IRunOptions = { ...format };
+      if (tag === "b" || tag === "strong") nextFormat = { ...nextFormat, bold: true };
+      if (tag === "i" || tag === "em") nextFormat = { ...nextFormat, italics: true };
+      if (tag === "u") nextFormat = { ...nextFormat, underline: { type: UnderlineType.SINGLE } };
 
-      if (tag === "b" || tag === "strong")
-        nextFormat = { ...nextFormat, bold: true };
-      if (tag === "i" || tag === "em")
-        nextFormat = { ...nextFormat, italics: true };
-      if (tag === "u")
-        nextFormat = {
-          ...nextFormat,
-          underline: { type: UnderlineType.SINGLE },
-        };
+      const bgCol = element.style.backgroundColor || (tag === "mark" ? "rgb(255, 255, 0)" : "");
+      if (bgCol && bgCol !== "transparent" && bgCol !== "rgba(0, 0, 0, 0)") {
+        const bgHex = rgbToHex(resolveColorToRGB(bgCol));
+        if (bgHex) {
+          nextFormat = { ...nextFormat, shading: { fill: bgHex } };
+        }
+      }
 
-      const textColor = el.style.color;
-      if (textColor) {
-        const rgbColor = resolveColorToRGB(textColor);
-        const hex = rgbToHex(rgbColor);
+      if (element.style.color) {
+        const hex = rgbToHex(resolveColorToRGB(element.style.color));
         if (hex) nextFormat = { ...nextFormat, color: hex };
       }
-
-      const fontFamily = el.style.fontFamily;
-      if (fontFamily) {
-        nextFormat = { ...nextFormat, font: fontFamily.replace(/['"]/g, "") };
-      }
-
-      const fontSize = el.style.fontSize;
-      if (fontSize && fontSize.includes("px")) {
-        const size = parseInt(fontSize);
+      if (element.style.fontFamily) nextFormat = { ...nextFormat, font: element.style.fontFamily.replace(/['"]/g, '') };
+      if (element.style.fontSize && element.style.fontSize.includes('px')) {
+        const size = parseInt(element.style.fontSize);
         if (!isNaN(size)) nextFormat = { ...nextFormat, size: size * 1.5 };
       }
 
-      for (const child of Array.from(el.childNodes)) {
-        const childRuns = await processHtmlNode(child, nextFormat);
-        runs.push(...childRuns);
-      }
+      for (const child of Array.from(element.childNodes)) runs.push(...await processHtmlNode(child, nextFormat));
     }
   }
   return runs;
 };
 
-const convertHtmlToDocxParagraphs = async (
-  html: string
-): Promise<Paragraph[]> => {
+const convertHtmlToDocxParagraphs = async (html: string): Promise<Paragraph[]> => {
   if (!html) return [];
-  const doc = new DOMParser().parseFromString(html, "text/html");
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
   const paragraphs: Paragraph[] = [];
-
   for (const element of Array.from(doc.body.children)) {
     const runs = await processHtmlNode(element);
-    if (runs.length > 0) {
-      paragraphs.push(
-        new Paragraph({ children: runs, spacing: { after: 200 } })
-      );
-    }
+    if (runs.length > 0) paragraphs.push(new Paragraph({ children: runs, spacing: { after: 200 } }));
   }
   return paragraphs;
 };
+
+
 
 const parseGraph = (nodes: FlowNode[], edges: Edge[]): GraphData => {
   const hierarchical: ParsedNode[] = [];
@@ -193,29 +144,24 @@ const parseGraph = (nodes: FlowNode[], edges: Edge[]): GraphData => {
   const dfs = (nodeId: string, depth: number) => {
     if (visited.has(nodeId)) return;
     visited.add(nodeId);
-
     const node = nodes.find((n) => n.id === nodeId);
     if (!node) return;
-
     hierarchical.push({
-      title: (node.data?.label as string) || "Нотатка без назви",
+      title: (node.data?.label as string) || "Нотатка",
       content: convertHtmlToText((node.data?.noteContent as string) || ""),
       rawContent: (node.data?.noteContent as string) || "",
       depth,
     });
-
-    const children = edges.filter((e) => e.source === nodeId);
-    children.forEach((e) => dfs(e.target, depth + 1));
+    edges.filter((e) => e.source === nodeId).forEach((edge) => dfs(edge.target, depth + 1));
   };
 
   nodes.filter((n) => !targetIds.has(n.id)).forEach((root) => dfs(root.id, 1));
-
-  nodes.forEach((n) => {
-    if (!visited.has(n.id)) {
+  nodes.forEach((node) => {
+    if (!visited.has(node.id)) {
       orphans.push({
-        title: (n.data?.label as string) || "Нотатка без назви",
-        content: convertHtmlToText((n.data?.noteContent as string) || ""),
-        rawContent: (n.data?.noteContent as string) || "",
+        title: (node.data?.label as string) || "Нотатка",
+        content: convertHtmlToText((node.data?.noteContent as string) || ""),
+        rawContent: (node.data?.noteContent as string) || "",
         depth: 1,
       });
     }
@@ -224,320 +170,311 @@ const parseGraph = (nodes: FlowNode[], edges: Edge[]): GraphData => {
   return { hierarchical, orphans };
 };
 
-const formatAsStudyCool = (
-  fileName: string,
-  nodes: FlowNode[],
-  edges: Edge[]
-): Blob => {
-  const metaData = {
-    version: "1.0",
-    mapTitle: fileName,
-    nodes,
-    edges,
-    date: new Date().toISOString(),
-  };
+
+const formatAsStudyCool = (fileName: string, nodes: FlowNode[], edges: Edge[]): Blob => {
+  const metaData = { version: "1.0", mapTitle: fileName, nodes, edges, date: new Date().toISOString() };
   return new Blob([JSON.stringify(metaData)], { type: "application/json" });
 };
 
-const formatAsTxt = (fileName: string, data: GraphData): Blob => {
+const formatAsTxt = (fileName: string, data: GraphData, isSingleNote: boolean): Blob => {
   let text = `${fileName.toUpperCase()}\n==============================\n\n`;
-  data.hierarchical.forEach((node) => {
-    const indent = "  ".repeat(node.depth - 1);
-    text += `${indent}${node.depth === 1 ? "■ " : "• "}${node.title}\n`;
-    if (node.content.trim()) text += `${indent}    ${node.content}\n`;
-    text += "\n";
-  });
+  if (isSingleNote && data.hierarchical.length > 0) text += data.hierarchical[0].content;
+  else {
+    data.hierarchical.forEach((node) => {
+      const indent = "  ".repeat(node.depth - 1);
+      text += `${indent}${node.depth === 1 ? "■ " : "• "}${node.title}\n`;
+      if (node.content.trim()) text += `${indent}    ${node.content}\n`;
+      text += "\n";
+    });
+    if (data.orphans.length > 0) {
+      text += `\nСамотні нотатки:\n==============================\n\n`; 
+      data.orphans.forEach((node) => { 
+        text += `■ ${node.title}\n`; 
+        if (node.content.trim()) text += `    ${node.content}\n`; 
+        text += "\n"; 
+      }); 
+    }
+  }
   return new Blob([text], { type: "text/plain; charset=utf-8" });
 };
 
-const formatAsMarkdown = (fileName: string, data: GraphData): Blob => {
-  const turndown = new TurndownService({
-    headingStyle: "atx",
-    codeBlockStyle: "fenced",
-  });
+const formatAsMarkdown = (fileName: string, data: GraphData, isSingleNote: boolean): Blob => {
+  const turndown = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
   let md = `# ${fileName}\n\n`;
-  data.hierarchical.forEach((node) => {
-    const prefix = node.depth === 1 ? "# " : node.depth === 2 ? "## " : "### ";
-    md += `${prefix}${node.title}\n\n${turndown.turndown(node.rawContent)}\n\n`;
-  });
+  if (isSingleNote && data.hierarchical.length > 0) md += `${turndown.turndown(data.hierarchical[0].rawContent)}\n\n`;
+  else {
+    data.hierarchical.forEach((node) => {
+      const prefix = node.depth === 1 ? "# " : node.depth === 2 ? "## " : "### ";
+      md += `${prefix}${node.title}\n\n${turndown.turndown(node.rawContent)}\n\n`;
+    });
+    if (data.orphans.length > 0) {
+      md += `---\n\n## Самотні нотатки\n\n`; 
+      data.orphans.forEach((node) => { md += `### ${node.title}\n\n${turndown.turndown(node.rawContent)}\n\n`; }); 
+    }
+  }
   return new Blob([md], { type: "text/markdown; charset=utf-8" });
 };
 
-const formatAsDocx = async (
-  fileName: string,
-  data: GraphData
-): Promise<Blob> => {
-  const children: Paragraph[] = [
-    new Paragraph({
-      text: fileName.toUpperCase(),
-      heading: HeadingLevel.TITLE,
-      spacing: { after: 400 },
-    }),
-  ];
-
-  for (const node of data.hierarchical) {
-    const heading =
-      node.depth === 1 ? HeadingLevel.HEADING_1 : HeadingLevel.HEADING_2;
-    children.push(
-      new Paragraph({
-        text: node.title,
-        heading,
-        spacing: { before: 200, after: 100 },
-      })
-    );
-    if (node.rawContent.trim()) {
-      const paragraphs = await convertHtmlToDocxParagraphs(node.rawContent);
-      children.push(...paragraphs);
+const formatAsDocx = async (fileName: string, data: GraphData, isSingleNote: boolean): Promise<Blob> => {
+  const children: Paragraph[] = [new Paragraph({ text: fileName.toUpperCase(), heading: HeadingLevel.TITLE, spacing: { after: 400 } })];
+  if (isSingleNote && data.hierarchical.length > 0 && data.hierarchical[0].rawContent.trim()) {
+      children.push(...await convertHtmlToDocxParagraphs(data.hierarchical[0].rawContent));
+  } else {
+    for (const n of data.hierarchical) {
+      children.push(new Paragraph({ text: n.title, heading: n.depth === 1 ? HeadingLevel.HEADING_1 : HeadingLevel.HEADING_2, spacing: { before: 200, after: 100 } }));
+      if (n.rawContent.trim()) children.push(...await convertHtmlToDocxParagraphs(n.rawContent));
+    }
+    if (data.orphans.length > 0) {
+      children.push(new Paragraph({ text: "Самотні нотатки", heading: HeadingLevel.HEADING_1, spacing: { before: 400, after: 200 } }));
+      for (const n of data.orphans) {
+        children.push(new Paragraph({ text: n.title, heading: HeadingLevel.HEADING_2, spacing: { before: 200, after: 100 } }));
+        if (n.rawContent.trim()) children.push(...await convertHtmlToDocxParagraphs(n.rawContent));
+      }
     }
   }
-
-  const doc = new Document({ sections: [{ children }] });
-  return await Packer.toBlob(doc);
+  return await Packer.toBlob(new DocxDocument({ sections: [{ children }] }));
 };
 
-const formatAsPdf = async (
-  fileName: string,
-  data: GraphData
-): Promise<Blob> => {
-  const doc = new jsPDF({ orientation: "p", unit: "pt", format: "a4" });
 
-  const margin = 40;
-  const pageWidth = 595.28;
-  const pageHeight = 841.89;
-  const contentWidth = pageWidth - margin * 2;
+
+const formatAsPdf = async (fileName: string, data: GraphData, isSingleNote: boolean): Promise<Blob> => {
+  const doc = new jsPDF({ orientation: "p", unit: "pt", format: "a4" });
+  const margin = 40, pageWidth = 595.28, pageHeight = 841.89, contentWidth = pageWidth - margin * 2;
   let cursorY = margin;
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(22);
   const titleLines = doc.splitTextToSize(fileName.toUpperCase(), contentWidth);
   doc.text(titleLines, pageWidth / 2, cursorY + 20, { align: "center" });
-  cursorY += titleLines.length * 28 + 30;
+  cursorY += (titleLines.length * 28) + 30;
 
   const renderBlock = async (node: ParsedNode) => {
     const div = document.createElement("div");
-
-    div.style.width = `${contentWidth}pt`;
-    div.style.padding = "10px";
-    div.style.background = "white";
-    div.style.color = "black";
-    div.style.fontFamily = "Arial, sans-serif";
-    div.style.position = "absolute";
-    div.style.left = "-9999px";
-
-    const size = node.depth === 1 ? "18pt" : node.depth === 2 ? "14pt" : "12pt";
-    const weight = node.depth <= 3 ? "bold" : "normal";
-
-    const sanitizedHTML = node.rawContent.replace(
-      /oklch\([^)]+\)/gi,
-      "rgb(0,0,0)"
-    );
-
-    div.innerHTML = `
-      <div style="font-size: ${size}; font-weight: ${weight}; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 8px; line-height: 1.3; display: block;">
-        ${node.title}
-      </div>
-      <div style="font-size: 11pt; line-height: 1.6; color: black; word-wrap: break-word;">
-        ${sanitizedHTML}
-      </div>
-    `;
-
-    document.body.appendChild(div);
-
-    const els = div.getElementsByTagName("*");
-    for (let i = 0; i < els.length; i++) {
-      const el = els[i] as HTMLElement;
-      const comp = getComputedStyle(el);
-
-      let color = comp.color;
-      let bg = comp.backgroundColor;
-      if (color.includes("oklch")) color = "rgb(0,0,0)";
-      if (bg.includes("oklch")) bg = "transparent";
-
-      el.style.color = resolveColorToRGB(color);
-      el.style.backgroundColor = resolveColorToRGB(bg);
-      el.removeAttribute("class");
-    }
-
-    const imgs = div.getElementsByTagName("img");
-    await Promise.all(
-      Array.from(imgs).map((img) => {
-        if (img.complete) return Promise.resolve();
-        return new Promise((res) => {
-          img.onload = res;
-          img.onerror = res;
-        });
-      })
-    );
-
-    const canvas = await html2canvas(div, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-      logging: false,
-      onclone: (clonedDoc) => {
-        const allEls = clonedDoc.getElementsByTagName("*");
-        for (let i = 0; i < allEls.length; i++) {
-          const el = allEls[i] as HTMLElement;
-          el.removeAttribute("class");
-
-          if (
-            (el.tagName === "SPAN" || el.tagName === "MARK") &&
-            el.style.backgroundColor &&
-            el.style.backgroundColor !== "transparent" &&
-            el.style.backgroundColor !== "rgba(0, 0, 0, 0)"
-          ) {
-            el.style.position = "relative";
-            el.style.top = "4px";
-            el.style.zIndex = "0";
-            el.style.display = "inline";
-            el.style.lineHeight = "inherit";
-            el.style.padding = "2px 4px";
-            el.style.borderRadius = "3px";
-            el.style.boxShadow = "none";
-
-            Array.from(el.childNodes).forEach((child) => {
-              if (child.nodeType === 3 && child.textContent?.trim() !== "") {
-                const textWrapper = clonedDoc.createElement("span");
-                textWrapper.style.position = "relative";
-                textWrapper.style.top = "-4px";
-                textWrapper.style.zIndex = "1";
-                textWrapper.textContent = child.textContent;
-                el.replaceChild(textWrapper, child);
-              } else if (child.nodeType === 1) {
-                const childEl = child as HTMLElement;
-                childEl.style.position = "relative";
-                childEl.style.top = "-4px";
-                childEl.style.zIndex = "1";
-              }
-            });
-          }
-        }
-        const styles = clonedDoc.querySelectorAll(
-          'style, link[rel="stylesheet"]'
-        );
-        styles.forEach((s) => s.remove());
-      },
+    Object.assign(div.style, { 
+      width: `${contentWidth}pt`, 
+      padding: "10px", 
+      background: "white", 
+      color: "black", 
+      fontFamily: "Arial, sans-serif", 
+      position: "fixed", 
+      top: "0", 
+      left: "0", 
+      zIndex: "-9999" 
     });
 
+    let titleHtml = "";
+    if (!isSingleNote) titleHtml = `<div style="font-size: ${node.depth === 1 ? '18pt' : '14pt'}; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 8px; line-height: 1.3; display: block;">${node.title}</div>`;
+
+    const cleanHTML = node.rawContent.replace(/(oklch|oklab|lab|lch|color)\([^)]+\)/gi, 'rgb(0,0,0)');
+    div.innerHTML = `${titleHtml}<div style="font-size: 11pt; line-height: 1.6; color: black; word-wrap: break-word;">${cleanHTML}</div>`;
+    document.body.appendChild(div);
+
+    const canvas = await toCanvas(div, { pixelRatio: 2, backgroundColor: "#ffffff" });
     document.body.removeChild(div);
 
     const imgData = canvas.toDataURL("image/jpeg", 1.0);
-    const imgProps = doc.getImageProperties(imgData);
-    const pdfImgHeight = (imgProps.height * contentWidth) / imgProps.width;
+    const pdfImgHeight = (doc.getImageProperties(imgData).height * contentWidth) / doc.getImageProperties(imgData).width;
 
     if (cursorY + pdfImgHeight > pageHeight - margin) {
-      if (pdfImgHeight <= pageHeight - margin * 2) {
-        doc.addPage();
-        cursorY = margin;
-        doc.addImage(
-          imgData,
-          "JPEG",
-          margin,
-          cursorY,
-          contentWidth,
-          pdfImgHeight
-        );
-        cursorY += pdfImgHeight + 15;
-      } else {
-        let heightLeft = pdfImgHeight;
-        let position = cursorY;
-        let sliceOffset = 0;
-
-        while (heightLeft > 0) {
-          if (sliceOffset > 0) {
-            doc.addPage();
-            position = margin;
-          }
-
-          doc.addImage(
-            imgData,
-            "JPEG",
-            margin,
-            position - sliceOffset,
-            contentWidth,
-            pdfImgHeight
-          );
-
-          const spaceOnThisPage = pageHeight - position - margin;
-          heightLeft -= spaceOnThisPage;
-          sliceOffset += spaceOnThisPage;
-          cursorY =
-            margin +
-            (spaceOnThisPage > pdfImgHeight ? pdfImgHeight : spaceOnThisPage) +
-            15;
-        }
-      }
+        doc.addPage(); cursorY = margin;
+        doc.addImage(imgData, "JPEG", margin, cursorY, contentWidth, pdfImgHeight); cursorY += pdfImgHeight + 15;
     } else {
-      doc.addImage(
-        imgData,
-        "JPEG",
-        margin,
-        cursorY,
-        contentWidth,
-        pdfImgHeight
-      );
-      cursorY += pdfImgHeight + 15;
+        doc.addImage(imgData, "JPEG", margin, cursorY, contentWidth, pdfImgHeight); cursorY += pdfImgHeight + 15;
     }
   };
 
-  for (const node of data.hierarchical) {
-    await renderBlock(node);
-  }
-
-  if (data.orphans.length > 0) {
-    if (cursorY + 50 > pageHeight - margin) {
-      doc.addPage();
-      cursorY = margin;
-    } else {
-      cursorY += 20;
-    }
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.text("Самотні нотатки", margin, cursorY);
-    cursorY += 10;
-
-    doc.setLineWidth(1);
-    doc.line(margin, cursorY, pageWidth - margin, cursorY);
-    cursorY += 20;
-
-    for (const node of data.orphans) {
-      await renderBlock(node);
-    }
-  }
-
+  for (const node of data.hierarchical) await renderBlock(node);
   return doc.output("blob");
 };
+
+const formatAsRasterImage = async (format: 'png' | 'jpeg', isSingleNote: boolean, nodes: FlowNode[]): Promise<Blob> => {
+  let targetElement: HTMLElement;
+  let explicitWidth: number | undefined;
+  let explicitHeight: number | undefined;
+  let cleanup = () => {};
+
+  if (isSingleNote) {
+    targetElement = document.createElement("div");
+    Object.assign(targetElement.style, { 
+      width: "800px", padding: "40px", background: "white", color: "black", 
+      fontFamily: "Arial, sans-serif", position: "absolute", left: "-9999px", textAlign: "center" 
+    });
+    const rawHTML = nodes[0].data?.noteContent as string || "";
+    
+    targetElement.innerHTML = `
+      <h1 style="margin-top:0; border-bottom: 2px solid #eaeaea; padding-bottom: 15px; font-size: 32px; text-align:center; color: black;">${nodes[0].data?.label || 'Нотатка'}</h1>
+      <div style="font-size: 18px; line-height: 1.6; text-align:center; color: black; margin-top: 20px;">${rawHTML}</div>
+    `;
+    document.body.appendChild(targetElement);
+    cleanup = () => document.body.removeChild(targetElement);
+  } else {
+    targetElement = document.querySelector('.react-flow') as HTMLElement;
+    if (!targetElement) throw new Error("React Flow container element not found");
+    explicitWidth = targetElement.offsetWidth;
+    explicitHeight = targetElement.offsetHeight;
+  }
+
+  await Promise.all(Array.from(targetElement.getElementsByTagName('img')).map(img => {
+    if (img.complete) return Promise.resolve();
+    return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+  }));
+
+  let styleTag: HTMLStyleElement | null = null;
+
+  if (!isSingleNote) {
+    styleTag = document.createElement('style');
+    styleTag.innerHTML = `
+      .react-flow__controls,
+      .react-flow__controls-button,
+      .react-flow__minimap,
+      .react-flow__attribution,
+      .react-flow__panel,
+      .react-flow__toolbar,
+      button {
+        display: none !important;
+      }
+
+      .react-flow,
+      .react-flow__renderer,
+      .react-flow__pane,
+      .react-flow__viewport {
+        background: transparent !important;
+        background-color: transparent !important;
+        overflow: visible !important;
+      }
+
+      .react-flow__node {
+        overflow: visible !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+      }
+
+      .react-flow__node * {
+        overflow: visible !important;
+        text-align: center !important;
+      }
+
+      .react-flow__edges,
+      .react-flow__edge,
+      svg {
+        overflow: visible !important;
+      }
+
+      .react-flow__edge-path {
+        stroke: #b1b1b7 !important;
+        stroke-width: 2px !important;
+        fill: none !important;
+        opacity: 1 !important;
+      }
+
+      svg {
+        overflow: visible !important;
+      }
+    `;
+    targetElement.appendChild(styleTag);
+
+    const edgePaths = targetElement.querySelectorAll('.react-flow__edge-path');
+    edgePaths.forEach((edge: Element) => {
+      const path = edge as SVGPathElement;
+      path.setAttribute('stroke', '#b1b1b7');
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('fill', 'none');
+      path.setAttribute('opacity', '1');
+      path.style.display = 'block';
+      path.style.visibility = 'visible';
+    });
+
+    const markers = targetElement.querySelectorAll('marker');
+    markers.forEach((marker: Element) => {
+      (marker as SVGElement).style.overflow = 'visible';
+    });
+
+    const svgs = targetElement.querySelectorAll('svg');
+    svgs.forEach((svg: Element) => {
+      const svgEl = svg as SVGElement;
+      svgEl.style.overflow = 'visible';
+      svgEl.style.position = 'absolute';
+    });
+
+    if (format === 'png') {
+      targetElement.querySelectorAll('.react-flow__background').forEach((el: Element) => {
+        (el as HTMLElement).style.setProperty('display', 'none', 'important');
+      });
+    }
+
+    const viewport = targetElement.querySelector('.react-flow__viewport') as HTMLElement;
+    if (viewport && explicitWidth && explicitHeight) {
+      viewport.style.transform = 'translate(0px, 0px) scale(1)';
+      viewport.style.width = `${explicitWidth}px`;
+      viewport.style.height = `${explicitHeight}px`;
+    }
+  }
+
+  try {
+    const blob = await toBlob(targetElement, {
+      backgroundColor: format === 'jpeg' || isSingleNote ? '#ffffff' : undefined, 
+      pixelRatio: 2,
+      cacheBust: true,
+    });
+
+    if (!blob) throw new Error("Image conversion failed");
+    return blob;
+  } finally {
+    if (styleTag) styleTag.remove();
+    cleanup();
+  }
+};
+
+const formatAsSvgImage = async (isSingleNote: boolean, nodes: FlowNode[]): Promise<Blob> => {
+  const pngBlob = await formatAsRasterImage('png', isSingleNote, nodes);
+  const dataUrl = await new Promise<string>((resolve) => {
+    const reader = new FileReader(); reader.onloadend = () => resolve(reader.result as string); reader.readAsDataURL(pngBlob);
+  });
+
+  const img = new Image();
+  await new Promise((resolve) => { img.onload = resolve; img.src = dataUrl; });
+
+  const reactFlowElement = document.querySelector('.react-flow') as HTMLElement;
+  const width = isSingleNote ? 800 : reactFlowElement?.offsetWidth || 800;
+  const height = isSingleNote ? Math.round(img.height / 2) : reactFlowElement?.offsetHeight || 600;
+
+  const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><image href="${dataUrl}" width="${width}" height="${height}" /></svg>`;
+  return new Blob([svgString], { type: "image/svg+xml; charset=utf-8" });
+};
+
 
 export const processExport = async (
   format: string,
   fileName: string,
   nodes: FlowNode[],
-  edges: Edge[]
+  edges: Edge[],
+  activeNodeId?: string
 ) => {
   let blob: Blob;
   const safeFileName = fileName.replace(/[^a-z0-9а-яіїєґ]/gi, "_");
-  const parsedData = parseGraph(nodes, edges);
+  
+  const isSingleNote = !!activeNodeId || (nodes.length === 1 && edges.length === 0);
+  
+  const nodesToProcess = activeNodeId ? nodes.filter(n => n.id === activeNodeId) : nodes;
+  const edgesToProcess = activeNodeId ? [] : edges;
 
-  switch (format) {
-    case "studycool":
+  const parsedData = parseGraph(nodesToProcess, edgesToProcess);
+
+  switch (format.toLowerCase()) {
+    case "studycool": 
       blob = formatAsStudyCool(safeFileName, nodes, edges);
       break;
-    case "txt":
-      blob = formatAsTxt(safeFileName, parsedData);
-      break;
-    case "md":
-      blob = formatAsMarkdown(safeFileName, parsedData);
-      break;
-    case "docx":
-      blob = await formatAsDocx(safeFileName, parsedData);
-      break;
-    case "pdf":
-      blob = await formatAsPdf(safeFileName, parsedData);
-      break;
-    default:
-      throw new Error(`Unsupported format: ${format}`);
+    case "txt": blob = formatAsTxt(safeFileName, parsedData, isSingleNote); break;
+    case "md": blob = formatAsMarkdown(safeFileName, parsedData, isSingleNote); break;
+    case "docx": blob = await formatAsDocx(safeFileName, parsedData, isSingleNote); break;
+    case "pdf": blob = await formatAsPdf(safeFileName, parsedData, isSingleNote); break;
+    case "png": blob = await formatAsRasterImage('png', isSingleNote, nodesToProcess); break;
+    case "jpeg": case "jpg": blob = await formatAsRasterImage('jpeg', isSingleNote, nodesToProcess); break;
+    case "svg": blob = await formatAsSvgImage(isSingleNote, nodesToProcess); break;
+    default: throw new Error(`Unsupported format: ${format}`);
   }
 
-  downloadBlob(blob, `${safeFileName}.${format}`);
+  downloadBlob(blob, `${safeFileName}.${format.toLowerCase()}`);
 };

@@ -3,10 +3,11 @@
 import { EditorContent } from "@tiptap/react";
 import { createPortal } from "react-dom";
 import { ComboBox } from "./ComboBox";
-import { useNoteEditorLogic } from "../hooks/useNoteEditor";  
+import { useNoteEditorLogic } from "../hooks/useNoteEditor";
 import { ExportModal } from "./ExportModal";
 
 interface NoteEditorProps {
+  id: string;
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: { title: string; content: string }) => void;
@@ -15,6 +16,7 @@ interface NoteEditorProps {
 }
 
 export default function NoteEditor({
+  id,
   isOpen,
   onClose,
   onSave,
@@ -29,10 +31,8 @@ export default function NoteEditor({
     currentFontSize,
     currentFontFamily,
     isOpenExport,
-    setIsOpenExport
+    setIsOpenExport,
   } = useNoteEditorLogic(initialTitle, initialContent, isOpen);
-
-  
 
   if (!isOpen || !editor) return null;
 
@@ -186,10 +186,22 @@ export default function NoteEditor({
           </div>
         </div>
       </div>
+
       <ExportModal
         isOpen={isOpenExport}
         onClose={() => setIsOpenExport(false)}
         exportType="note"
+        fileName={title}
+        activeNodeId={id}
+        nodes={[
+          {
+            id: id,
+            type: "custom",
+            position: { x: 0, y: 0 },
+            data: { label: title, noteContent: editor.getHTML() },
+          },
+        ]}
+        edges={[]}
       />
     </div>,
     document.body
