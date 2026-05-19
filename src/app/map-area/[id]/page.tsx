@@ -9,8 +9,8 @@ import {
   ReactFlowProvider,
   Panel,
   useReactFlow,
-  Node,
-  Edge,
+  type Node,
+  type Edge,
 } from "@xyflow/react";
 
 import Zoomer from "../components/Zoomer";
@@ -24,15 +24,16 @@ import { useMainStore } from "@/store/useMainStore";
 
 function MapFlow() {
   const mapLogic = useMapLogic();
-
   const searchParams = useSearchParams();
   const openNodeId = searchParams.get("openNode");
 
-  const { setCenter } = useReactFlow();
+  const { setCenter, fitView } = useReactFlow();
 
   const currentMapId = useMapEditorStore((state) => state.currentMapId);
   const nodes = useMapEditorStore((state) => state.nodes);
   const edges = useMapEditorStore((state) => state.edges);
+  const setNodes = useMapEditorStore((state) => state.setNodes);
+  const setEdges = useMapEditorStore((state) => state.setEdges);
   const onNodesChange = useMapEditorStore((state) => state.onNodesChange);
   const onEdgesChange = useMapEditorStore((state) => state.onEdgesChange);
   const onConnect = useMapEditorStore((state) => state.onConnect);
@@ -51,21 +52,17 @@ function MapFlow() {
 
   const activeNode = nodes.find((n) => n.id === selectedNodeId);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-
   const hasAutoOpened = useRef(false);
 
   useEffect(() => {
     if (openNodeId && nodes.length > 0 && !hasAutoOpened.current) {
       const targetNode = nodes.find((n) => n.id === openNodeId);
-
       if (targetNode) {
         openNoteEditor(openNodeId);
-
         setCenter(targetNode.position.x, targetNode.position.y, {
           zoom: 1.5,
           duration: 800,
         });
-
         hasAutoOpened.current = true;
       }
     }
@@ -73,17 +70,22 @@ function MapFlow() {
 
   useEffect(() => {
     if (currentMapId !== null) {
-      const dataToSave = JSON.stringify({ nodes, edges });
-      localStorage.setItem(`map_data_${currentMapId}`, dataToSave);
-
-      if (updateMapNodes) {
-        updateMapNodes(currentMapId, nodes as Node[]);
-      }
+      localStorage.setItem(
+        `map_data_${currentMapId}`,
+        JSON.stringify({ nodes, edges })
+      );
+      if (updateMapNodes) updateMapNodes(currentMapId, nodes as Node[]);
     }
   }, [nodes, edges, currentMapId, updateMapNodes]);
 
-  const handleImportText = (text: string) => {
-    console.log("Отримано текст для імпорту:", text);
+  const handleImport = (data: { nodes: Node[]; edges: Edge[] }) => {
+    setNodes(data.nodes);
+    setEdges(data.edges);
+
+    // Центруємо камеру на нових даних
+    setTimeout(() => {
+      fitView({ duration: 500, padding: 0.2 });
+    }, 50);
   };
 
   return (
@@ -124,7 +126,6 @@ function MapFlow() {
           >
             Import
           </button>
-
           <button
             onClick={() => mapLogic.setIsOpenExport(true)}
             className="rounded-sm bg-gray-800 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-gray-700"
@@ -134,17 +135,18 @@ function MapFlow() {
         </Panel>
       </ReactFlow>
 
-      <NoteEditor
-        isOpen={isNoteEditorOpen}
-        initialTitle={(activeNode?.data?.label as string) || ""}
-        initialContent={(activeNode?.data?.noteContent as string) || ""}
-        onClose={closeNoteEditor}
-        onSave={(data) => {
-          if (selectedNodeId) {
-            updateNodeNote(selectedNodeId, data.title, data.content);
+      {selectedNodeId && (
+        <NoteEditor
+          id={selectedNodeId}
+          isOpen={isNoteEditorOpen}
+          initialTitle={(activeNode?.data?.label as string) || ""}
+          initialContent={(activeNode?.data?.noteContent as string) || ""}
+          onClose={closeNoteEditor}
+          onSave={(data) =>
+            updateNodeNote(selectedNodeId, data.title, data.content)
           }
-        }}
-      />
+        />
+      )}
 
       <ExportModal
         isOpen={mapLogic.isOpenExport}
@@ -155,7 +157,7 @@ function MapFlow() {
       <ImportModal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
-        onImport={handleImportText}
+        onImport={handleImport}
       />
     </div>
   );
@@ -164,16 +166,13 @@ function MapFlow() {
 export default function MapArea() {
   const params = useParams();
   const mapId = Number(params.id);
-
   const loadMapData = useMapEditorStore((state) => state.loadMapData);
   const resetMap = useMapEditorStore((state) => state.resetMap);
   const updateLastOpened = useMainStore((state) => state.updateMapAccessTime);
 
   useEffect(() => {
     if (!mapId) return;
-
     updateLastOpened(mapId);
-
     const savedMapData = localStorage.getItem(`map_data_${mapId}`);
     let fetchedNodes: Node[] = [];
     let fetchedEdges: Edge[] = [];
@@ -184,10 +183,9 @@ export default function MapArea() {
         fetchedNodes = parsedData.nodes || [];
         fetchedEdges = parsedData.edges || [];
       } catch (e) {
-        console.error("Помилка парсингу даних мапи", e);
+        console.error("Parsing map data failed", e);
       }
     }
-
     loadMapData(mapId, fetchedNodes, fetchedEdges);
     return () => resetMap();
   }, [mapId, loadMapData, resetMap, updateLastOpened]);
