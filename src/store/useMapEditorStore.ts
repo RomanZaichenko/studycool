@@ -40,12 +40,20 @@ export const propagateLevelChange = (
   return updatedNodes;
 };
 
+type HistoryState = { nodes: Node[]; edges: Edge[] };
+
 interface MapEditorState {
   nodes: Node[];
   edges: Edge[];
   currentMapId: number | null;
   isNoteEditorOpen: boolean;
   selectedNodeId: string | null;
+
+  past: HistoryState[];
+  future: HistoryState[];
+  takeSnapshot: () => void;
+  undo: () => void;
+  redo: () => void;
 
   setNodes: (nodes: Node[]) => void;
   setEdges: (edges: Edge[]) => void;
@@ -75,15 +83,55 @@ export const useMapEditorStore = create<MapEditorState>((set, get) => ({
   currentMapId: null,
   isNoteEditorOpen: false,
   selectedNodeId: null,
+  past: [],
+  future: [],
 
-  setNodes: (nodes) => set({ nodes }),
-  setEdges: (edges) => set({ edges }),
+  takeSnapshot: () => {
+    const { nodes, edges, past } = get();
+    const newPast = [...past, { nodes, edges }].slice(-50);
+    set({ past: newPast, future: [] });
+  },
+
+  undo: () => {
+    const { past, future, nodes, edges } = get();
+    if (past.length === 0) return;
+    const previous = past[past.length - 1];
+    set({
+      past: past.slice(0, -1),
+      future: [{ nodes, edges }, ...future],
+      nodes: previous.nodes,
+      edges: previous.edges,
+    });
+  },
+
+  redo: () => {
+    const { past, future, nodes, edges } = get();
+    if (future.length === 0) return;
+    const next = future[0];
+    set({
+      past: [...past, { nodes, edges }],
+      future: future.slice(1),
+      nodes: next.nodes,
+      edges: next.edges,
+    });
+  },
+
+  setNodes: (nodes) => {
+    get().takeSnapshot();
+    set({ nodes });
+  },
+  setEdges: (edges) => {
+    get().takeSnapshot();
+    set({ edges });
+  },
+
   onNodesChange: (changes) =>
     set({ nodes: applyNodeChanges(changes, get().nodes) }),
   onEdgesChange: (changes) =>
     set({ edges: applyEdgeChanges(changes, get().edges) }),
 
   onConnect: (params) => {
+    get().takeSnapshot();
     const { nodes, edges } = get();
     const newEdges = addEdge(params, edges);
     set({ edges: newEdges });
@@ -98,6 +146,7 @@ export const useMapEditorStore = create<MapEditorState>((set, get) => ({
   },
 
   onEdgesDelete: (deletedEdges) => {
+    get().takeSnapshot();
     const { nodes, edges } = get();
     const remaining = edges.filter(
       (e) => !deletedEdges.some((de) => de.id === e.id)
@@ -114,23 +163,31 @@ export const useMapEditorStore = create<MapEditorState>((set, get) => ({
 
   openNoteEditor: (id) => set({ selectedNodeId: id, isNoteEditorOpen: true }),
   closeNoteEditor: () => set({ selectedNodeId: null, isNoteEditorOpen: false }),
-  updateNodeNote: (id, title, content) =>
+
+  updateNodeNote: (id, title, content) => {
+    get().takeSnapshot();
     set((s) => ({
       nodes: s.nodes.map((n) =>
         n.id === id
           ? { ...n, data: { ...n.data, label: title, noteContent: content } }
           : n
       ),
-    })),
-  toggleIsNodeStudied: (id) =>
+    }));
+  },
+
+  toggleIsNodeStudied: (id) => {
+    get().takeSnapshot();
     set((s) => ({
       nodes: s.nodes.map((n) =>
         n.id === id
           ? { ...n, data: { ...n.data, isStudied: !n.data.isStudied } }
           : n
       ),
-    })),
-  addNodeAtPosition: (pos) =>
+    }));
+  },
+
+  addNodeAtPosition: (pos) => {
+    get().takeSnapshot();
     set((s) => ({
       nodes: [
         ...s.nodes,
@@ -142,7 +199,8 @@ export const useMapEditorStore = create<MapEditorState>((set, get) => ({
           origin: [0.5, 0.5],
         },
       ],
-    })),
+    }));
+  },
 
   createNodeFromConnection: (
     pos,
@@ -151,6 +209,7 @@ export const useMapEditorStore = create<MapEditorState>((set, get) => ({
     handleId,
     endHandleId
   ) => {
+    get().takeSnapshot();
     const { nodes, edges } = get();
     const newNodeId = `node-${crypto.randomUUID().slice(0, 8)}`;
     const newEdge = {
@@ -178,6 +237,8 @@ export const useMapEditorStore = create<MapEditorState>((set, get) => ({
     });
   },
 
-  loadMapData: (id, n, e) => set({ currentMapId: id, nodes: n, edges: e }),
-  resetMap: () => set({ currentMapId: null, nodes: [], edges: [] }),
+  loadMapData: (id, n, e) =>
+    set({ currentMapId: id, nodes: n, edges: e, past: [], future: [] }),
+  resetMap: () =>
+    set({ currentMapId: null, nodes: [], edges: [], past: [], future: [] }),
 }));

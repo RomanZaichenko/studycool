@@ -100,11 +100,12 @@ export default function Searcher({ className = "" }: { className?: string }) {
 
   useEffect(() => {
     miniSearch.removeAll();
-    const allDocs: SearchDocument[] = [];
+    const docsMap = new Map<string, SearchDocument>();
 
     projects.forEach((p) => {
-      allDocs.push({
-        id: `proj-${p.id}`,
+      const docId = `proj-${p.id}`;
+      docsMap.set(docId, {
+        id: docId,
         originalId: p.id,
         title: p.title || "Без назви",
         content: p.description || "",
@@ -115,8 +116,10 @@ export default function Searcher({ className = "" }: { className?: string }) {
 
     maps.forEach((m) => {
       const proj = projects.find((p) => p.id === m.projectId);
-      allDocs.push({
-        id: `map-${m.id}`,
+      const mapDocId = `map-${m.id}`;
+
+      docsMap.set(mapDocId, {
+        id: mapDocId,
         originalId: m.id,
         title: m.title || "Без назви",
         content: m.description || "",
@@ -133,8 +136,10 @@ export default function Searcher({ className = "" }: { className?: string }) {
             .replace(/<[^>]+>/g, " ")
             .replace(/\s+/g, " ")
             .trim();
-          allDocs.push({
-            id: `note-${n.id}`,
+          const noteDocId = `note-${m.id}-${n.id}`;
+
+          docsMap.set(noteDocId, {
+            id: noteDocId,
             originalId: n.id,
             parentId: m.id,
             title: n.data?.label || "Нотатка",
@@ -154,8 +159,10 @@ export default function Searcher({ className = "" }: { className?: string }) {
           .replace(/<[^>]+>/g, " ")
           .replace(/\s+/g, " ")
           .trim();
-        allDocs.push({
-          id: `active-note-${n.id}`,
+        const activeNoteDocId = `note-${activeMapId}-${n.id}`;
+
+        docsMap.set(activeNoteDocId, {
+          id: activeNoteDocId,
           originalId: n.id,
           parentId: activeMapId,
           title: (n.data?.label as string) || "Нотатка",
@@ -166,7 +173,7 @@ export default function Searcher({ className = "" }: { className?: string }) {
       });
     }
 
-    miniSearch.addAll(allDocs);
+    miniSearch.addAll(Array.from(docsMap.values()));
   }, [projects, maps, activeNodes, activeMapId]);
 
   useEffect(() => {

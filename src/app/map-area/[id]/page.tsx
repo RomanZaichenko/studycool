@@ -48,11 +48,36 @@ function MapFlow() {
     (state) => state.toggleIsNodeStudied
   );
 
+  const undo = useMapEditorStore((state) => state.undo);
+  const redo = useMapEditorStore((state) => state.redo);
+  const takeSnapshot = useMapEditorStore((state) => state.takeSnapshot);
+  const past = useMapEditorStore((state) => state.past);
+  const future = useMapEditorStore((state) => state.future);
+
   const updateMapNodes = useMainStore((state) => state.updateMapNodes);
 
   const activeNode = nodes.find((n) => n.id === selectedNodeId);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const hasAutoOpened = useRef(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isNoteEditorOpen) return;
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+        e.preventDefault(); // Запобігаємо стандартній поведінці браузера
+
+        if (e.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [undo, redo, isNoteEditorOpen]);
 
   useEffect(() => {
     if (openNodeId && nodes.length > 0 && !hasAutoOpened.current) {
@@ -82,7 +107,6 @@ function MapFlow() {
     setNodes(data.nodes);
     setEdges(data.edges);
 
-    // Центруємо камеру на нових даних
     setTimeout(() => {
       fitView({ duration: 500, padding: 0.2 });
     }, 50);
@@ -98,6 +122,8 @@ function MapFlow() {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onEdgesDelete={onEdgesDelete}
+        onNodeDragStart={() => takeSnapshot()}
+        onNodesDelete={() => takeSnapshot()}
         zoomActivationKeyCode={"Ctrl"}
         deleteKeyCode={"Delete"}
         connectionMode={ConnectionMode.Loose}
@@ -120,6 +146,50 @@ function MapFlow() {
         <Zoomer />
 
         <Panel position="top-right" className="flex gap-3 p-4">
+          <div className="mr-2 flex overflow-hidden rounded-sm border border-gray-200 bg-white shadow-sm">
+            <button
+              onClick={undo}
+              disabled={past.length === 0}
+              title="Undo (Ctrl+Z)"
+              className="px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-30"
+            >
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+                />
+              </svg>
+            </button>
+            <div className="w-px bg-gray-200"></div>
+            <button
+              onClick={redo}
+              disabled={future.length === 0}
+              title="Redo (Ctrl+Shift+Z)"
+              className="px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-30"
+            >
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6"
+                />
+              </svg>
+            </button>
+          </div>
+
           <button
             onClick={() => setIsImportModalOpen(true)}
             className="rounded-sm bg-white px-5 py-2.5 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
@@ -183,7 +253,7 @@ export default function MapArea() {
         fetchedNodes = parsedData.nodes || [];
         fetchedEdges = parsedData.edges || [];
       } catch (e) {
-        console.error("Parsing map data failed", e);
+        console.error("Помилка парсингу даних мапи", e);
       }
     }
     loadMapData(mapId, fetchedNodes, fetchedEdges);
