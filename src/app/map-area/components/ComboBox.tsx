@@ -1,70 +1,95 @@
-import { useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 interface ComboBoxProps {
-  value: string;
   placeholder: string;
+  value: string;
   options: string[];
   onChange: (val: string) => void;
   autoSuffix?: string;
 }
 
-export function ComboBox({ value, placeholder, options, onChange, autoSuffix }: ComboBoxProps) {
+export function ComboBox({
+  placeholder,
+  value,
+  options,
+  onChange,
+  autoSuffix = "",
+}: ComboBoxProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [text, setText] = useState(value);
+  const [inputValue, setInputValue] = useState("");
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { setText(value || ""); }, [value]);
+  useEffect(() => {
+    setInputValue(value ? value.replace(autoSuffix, "") : "");
+  }, [value, autoSuffix]);
 
-  const submit = (val: string) => {
-    let finalVal = val.trim();
-    if (autoSuffix && finalVal && !isNaN(Number(finalVal))) {
-      finalVal += autoSuffix;
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
     }
-    setText(finalVal);
-    onChange(finalVal);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredOptions = options.filter((opt) =>
+    opt.toLowerCase().includes(inputValue.toLowerCase())
+  );
+
+  const applyValue = () => {
     setIsOpen(false);
+    if (!inputValue) return;
+    const finalVal = inputValue.endsWith(autoSuffix)
+      ? inputValue
+      : inputValue + autoSuffix;
+    onChange(finalVal);
   };
 
   return (
-    <div className="relative w-full text-gray-700">
-      <div className={`flex border bg-white rounded shadow-sm transition-colors ${isOpen ? 'border-gray-400' : 'border-gray-100'}`}>
-        <input
-          type="text"
-          className="w-full p-2 text-xs font-medium outline-none bg-transparent"
-          placeholder={placeholder}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onFocus={() => setIsOpen(true)}
-          onBlur={() => setTimeout(() => setIsOpen(false), 150)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              submit(text);
-            }
-          }}
-        />
-        <button
-          type="button"
-          className="px-2 text-[10px] text-gray-400 hover:text-gray-600"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          ▼
-        </button>
-      </div>
-
+    <div className="relative w-full" ref={wrapperRef}>
+      <input
+        type="text"
+        className="w-full rounded border border-gray-200 bg-white p-2 text-sm text-gray-700 transition-colors outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+        placeholder={placeholder}
+        value={inputValue}
+        onChange={(e) => {
+          setInputValue(e.target.value);
+          setIsOpen(true);
+        }}
+        onFocus={() => setIsOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") applyValue();
+        }}
+        onBlur={() => {
+          setTimeout(applyValue, 150);
+        }}
+      />
       {isOpen && (
-        <ul className="absolute top-full left-0 w-full mt-1 bg-white border border-gray-200 shadow-lg rounded z-50 max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
-          {options.map((opt) => (
-            <li
-              key={opt}
-              className="p-2 text-xs cursor-pointer hover:bg-gray-100 transition-colors"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                submit(opt);
-              }}
-            >
-              {opt}
+        <ul className="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded border border-gray-200 bg-white shadow-lg">
+          {filteredOptions.length > 0 ? (
+            filteredOptions.map((opt) => (
+              <li
+                key={opt}
+                className="cursor-pointer px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setInputValue(opt.replace(autoSuffix, ""));
+                  onChange(opt);
+                  setIsOpen(false);
+                }}
+              >
+                {opt}
+              </li>
+            ))
+          ) : (
+            <li className="px-3 py-2 text-sm text-gray-400">
+              Нічого не знайдено
             </li>
-          ))}
+          )}
         </ul>
       )}
     </div>

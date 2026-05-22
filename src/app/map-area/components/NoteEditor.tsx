@@ -36,6 +36,40 @@ export default function NoteEditor({
 
   if (!isOpen || !editor) return null;
 
+  const handleListStyle = (type: "ordered" | "bullet", style: string) => {
+    if (type === "ordered") {
+      if (!editor.isActive("orderedList")) {
+        editor
+          .chain()
+          .focus()
+          .toggleOrderedList()
+          .updateAttributes("orderedList", { listStyleType: style })
+          .run();
+      } else {
+        editor
+          .chain()
+          .focus()
+          .updateAttributes("orderedList", { listStyleType: style })
+          .run();
+      }
+    } else {
+      if (!editor.isActive("bulletList")) {
+        editor
+          .chain()
+          .focus()
+          .toggleBulletList()
+          .updateAttributes("bulletList", { listStyleType: style })
+          .run();
+      } else {
+        editor
+          .chain()
+          .focus()
+          .updateAttributes("bulletList", { listStyleType: style })
+          .run();
+      }
+    }
+  };
+
   return createPortal(
     <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/10 p-4 font-sans backdrop-blur-sm">
       <div className="relative flex h-[92vh] w-full max-w-6xl rounded-sm border border-gray-200 bg-[#F0F0F0] p-8 shadow-2xl">
@@ -71,8 +105,65 @@ export default function NoteEditor({
               placeholder="Note title"
             />
 
+            <style>{`
+              /* Звичайні списки */
+              .editor-wrapper .ProseMirror ul:not([data-type="taskList"]) {
+                list-style-type: inherit !important;
+                padding-left: 2rem !important;
+                margin-top: 0.5rem !important;
+                margin-bottom: 0.5rem !important;
+              }
+              .editor-wrapper .ProseMirror ol {
+                list-style-type: inherit !important;
+                padding-left: 2rem !important;
+                margin-top: 0.5rem !important;
+                margin-bottom: 0.5rem !important;
+              }
+              
+              /* To-Do списки */
+              .editor-wrapper .ProseMirror ul[data-type="taskList"] {
+                list-style: none !important;
+                padding: 0 !important;
+                margin: 0.5rem 0 !important;
+              }
+              .editor-wrapper .ProseMirror ul[data-type="taskList"] li {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: flex-start !important;
+                gap: 0.75rem !important; /* Відстань між чекбоксом і текстом */
+                margin-bottom: 0.5rem !important;
+              }
+              /* Контейнер для самого квадратика чекбокса */
+              .editor-wrapper .ProseMirror ul[data-type="taskList"] li > label {
+                margin: 0 !important;
+                padding-top: 0.25rem !important; /* Центрування відносно першого рядка тексту */
+                display: flex !important;
+                user-select: none !important;
+              }
+              /* Чекбокс */
+              .editor-wrapper .ProseMirror ul[data-type="taskList"] li input[type="checkbox"] {
+                width: 1.2rem !important;
+                height: 1.2rem !important;
+                cursor: pointer !important;
+                margin: 0 !important;
+              }
+              /* Контейнер з текстом задачі */
+              .editor-wrapper .ProseMirror ul[data-type="taskList"] li > div {
+                flex: 1 1 0% !important;
+                min-width: 0 !important;
+              }
+              .editor-wrapper .ProseMirror ul[data-type="taskList"] li > div > p {
+                margin: 0 !important;
+              }
+              /* ПЕРЕКРЕСЛЕННЯ при відміченому чекбоксі */
+              .editor-wrapper .ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div {
+                text-decoration: line-through !important;
+                color: #9ca3af !important; /* Сірий колір */
+              }
+            `}</style>
+
             <div
-              className="scrollbar-thin scrollbar-thumb-gray-200 flex-1 cursor-text overflow-y-auto border border-gray-100 bg-white shadow-sm"
+              className="editor-wrapper scrollbar-thin scrollbar-thumb-gray-200 flex-1 cursor-text overflow-y-auto border border-gray-100 bg-white p-6 shadow-sm"
               onClick={() => editor.chain().focus().run()}
             >
               <EditorContent editor={editor} />
@@ -107,26 +198,27 @@ export default function NoteEditor({
             <div className="grid grid-cols-3 gap-1 rounded border border-gray-100 bg-white p-1 shadow-sm">
               <button
                 onClick={() => editor.chain().focus().toggleBold().run()}
-                className={`flex justify-center rounded p-2 text-sm font-bold text-gray-700 hover:bg-gray-100 ${editor.isActive("bold") ? "bg-gray-200" : ""}`}
+                className={`flex items-center justify-center rounded p-2 text-sm font-bold text-gray-700 hover:bg-gray-100 ${editor.isActive("bold") ? "bg-gray-200" : ""}`}
               >
                 B
               </button>
-
               <button
                 onClick={() => editor.chain().focus().toggleItalic().run()}
-                className={`flex justify-center rounded p-2 font-serif text-sm text-gray-700 italic hover:bg-gray-100 ${editor.isActive("italic") ? "bg-gray-200" : ""}`}
+                className={`flex items-center justify-center rounded p-2 font-serif text-sm text-gray-700 italic hover:bg-gray-100 ${editor.isActive("italic") ? "bg-gray-200" : ""}`}
               >
                 I
               </button>
-
               <button
                 onClick={() => editor.chain().focus().toggleUnderline().run()}
-                className={`flex justify-center rounded p-2 text-sm text-gray-700 underline hover:bg-gray-100 ${editor.isActive("underline") ? "bg-gray-200" : ""}`}
+                className={`flex items-center justify-center rounded p-2 text-sm text-gray-700 underline hover:bg-gray-100 ${editor.isActive("underline") ? "bg-gray-200" : ""}`}
               >
                 U
               </button>
 
-              <label className="relative flex cursor-pointer items-center justify-center rounded p-2 text-sm hover:bg-gray-100">
+              <label
+                className="relative flex cursor-pointer items-center justify-center rounded p-2 text-sm hover:bg-gray-100"
+                title="Text Color"
+              >
                 <span className="border-b-2 border-red-500 leading-none font-bold text-gray-700 uppercase">
                   A
                 </span>
@@ -139,7 +231,10 @@ export default function NoteEditor({
                 />
               </label>
 
-              <label className="relative flex cursor-pointer items-center justify-center rounded p-2 text-sm hover:bg-gray-100">
+              <label
+                className="relative flex cursor-pointer items-center justify-center rounded p-2 text-sm hover:bg-gray-100"
+                title="Highlight Color"
+              >
                 <span className="bg-yellow-200 px-1 text-[10px] leading-none font-bold text-gray-800 uppercase">
                   BG
                 </span>
@@ -157,8 +252,8 @@ export default function NoteEditor({
               </label>
 
               <label
-                aria-label="Insert image"
                 className="flex cursor-pointer items-center justify-center rounded p-2 text-sm hover:bg-gray-100"
+                title="Insert Image"
               >
                 🖼️
                 <input
@@ -168,6 +263,46 @@ export default function NoteEditor({
                   onChange={handleImageUpload}
                 />
               </label>
+            </div>
+
+            <div className="grid grid-cols-5 gap-1 rounded border border-gray-100 bg-white p-1 shadow-sm">
+              <button
+                onClick={() => handleListStyle("bullet", "disc")}
+                className={`flex items-center justify-center rounded py-2 text-sm font-bold text-gray-700 hover:bg-gray-100 ${editor.isActive("bulletList", { listStyleType: "disc" }) ? "bg-gray-200" : ""}`}
+                title="Крапки"
+              >
+                •
+              </button>
+              <button
+                onClick={() => handleListStyle("bullet", '"- "')}
+                className={`flex items-center justify-center rounded py-2 text-sm font-bold text-gray-700 hover:bg-gray-100 ${editor.isActive("bulletList", { listStyleType: '"- "' }) ? "bg-gray-200" : ""}`}
+                title="Тире"
+              >
+                —
+              </button>
+              <button
+                onClick={() => handleListStyle("ordered", "decimal")}
+                className={`flex items-center justify-center rounded py-2 text-sm font-bold text-gray-700 hover:bg-gray-100 ${editor.isActive("orderedList", { listStyleType: "decimal" }) ? "bg-gray-200" : ""}`}
+                title="Цифри"
+              >
+                1.
+              </button>
+              <button
+                onClick={() => handleListStyle("ordered", "lower-alpha")}
+                className={`flex items-center justify-center rounded py-2 text-sm font-bold text-gray-700 hover:bg-gray-100 ${editor.isActive("orderedList", { listStyleType: "lower-alpha" }) ? "bg-gray-200" : ""}`}
+                title="Літери"
+              >
+                a.
+              </button>
+              <button
+                onClick={() => {
+                  editor.chain().focus().toggleTaskList().run();
+                }}
+                className={`flex items-center justify-center rounded py-2 text-sm font-bold text-gray-700 hover:bg-gray-100 ${editor.isActive("taskList") ? "bg-gray-200" : ""}`}
+                title="To-Do List"
+              >
+                ☑
+              </button>
             </div>
 
             <button
