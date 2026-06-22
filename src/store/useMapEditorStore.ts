@@ -42,7 +42,7 @@ export const propagateLevelChange = (
 
 type HistoryState = { nodes: Node[]; edges: Edge[] };
 
-interface MapEditorState {
+export interface MapEditorState {
   nodes: Node[];
   edges: Edge[];
   currentMapId: number | null;
