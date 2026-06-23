@@ -1,9 +1,9 @@
 import { Node as FlowNode } from "@xyflow/react";
 
 export default interface Map {
-  id: number;
+  id: string;
   title: string;
-  projectId: number;
+  projectId: string;
   description?: string;
   createdAt: Date;
   lastOpened: Date;

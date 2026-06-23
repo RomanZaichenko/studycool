@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { type Node as FlowNode, type Edge } from "@xyflow/react";
-import { processImport } from "@/app/lib/importService";
+import { processImport } from "@/lib/importService";
 import { useMapEditorStore } from "@/store/useMapEditorStore";
 
 interface ImportModalProps {

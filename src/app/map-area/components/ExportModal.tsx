@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { type Node as FlowNode, Edge } from "@xyflow/react";
 
-import { processExport } from "@/app/lib/exportService";
+import { processExport } from "@/lib/exportService";
 
 interface ExportModalProps {
   isOpen: boolean;
