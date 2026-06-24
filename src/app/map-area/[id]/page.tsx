@@ -235,7 +235,8 @@ function MapFlow() {
 
 export default function MapArea() {
   const params = useParams();
-  const mapId = Number(params.id);
+  const rawId = params?.id;
+  const mapId = Array.isArray(rawId) ? rawId[0] : rawId;
   const loadMapData = useMapEditorStore((state) => state.loadMapData);
   const resetMap = useMapEditorStore((state) => state.resetMap);
   const updateLastOpened = useMainStore((state) => state.updateMapAccessTime);

@@ -9,8 +9,8 @@ import { useMapEditorStore } from "@/store/useMapEditorStore";
 
 export interface GlobalSearchResult {
   id: string;
-  originalId: string | number;
-  parentId?: string | number;
+  originalId: string;
+  parentId?: string;
   title: string;
   path: string;
   contentSnippet: string;
@@ -19,8 +19,8 @@ export interface GlobalSearchResult {
 
 interface SearchDocument {
   id: string;
-  originalId: string | number;
-  parentId?: string | number;
+  originalId: string;
+  parentId?: string;
   title: string;
   content: string;
   path: string;
@@ -36,9 +36,9 @@ interface MapNodeData {
 }
 
 interface ExtendedMap {
-  id: number;
+  id: string;
   title: string;
-  projectId: number;
+  projectId: string;
   description?: string;
   nodes?: MapNodeData[];
 }
@@ -88,7 +88,8 @@ export default function Searcher({ className = "" }: { className?: string }) {
   const projects = useMainStore((state) => state.projects);
   const maps = useMainStore((state) => state.maps);
   const activeNodes = useMapEditorStore((state) => state.nodes);
-  const activeMapId = useMapEditorStore((state) => state.currentMapId);
+  const _rawActiveMapId = useMapEditorStore((state) => state.currentMapId);
+  const activeMapId = _rawActiveMapId != null ? String(_rawActiveMapId) : null; 
 
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -106,7 +107,7 @@ export default function Searcher({ className = "" }: { className?: string }) {
       const docId = `proj-${p.id}`;
       docsMap.set(docId, {
         id: docId,
-        originalId: p.id,
+        originalId: String(p.id),
         title: p.title || "Без назви",
         content: p.description || "",
         path: "Категорія: Проєкти",
@@ -120,7 +121,7 @@ export default function Searcher({ className = "" }: { className?: string }) {
 
       docsMap.set(mapDocId, {
         id: mapDocId,
-        originalId: m.id,
+        originalId: String(m.id),
         title: m.title || "Без назви",
         content: m.description || "",
         path: proj ? `Проєкт: ${proj.title}` : "Мапа",
@@ -140,7 +141,7 @@ export default function Searcher({ className = "" }: { className?: string }) {
 
           docsMap.set(noteDocId, {
             id: noteDocId,
-            originalId: n.id,
+            originalId: String(n.id),
             parentId: m.id,
             title: n.data?.label || "Нотатка",
             content: cleanContent,
@@ -205,8 +206,8 @@ export default function Searcher({ className = "" }: { className?: string }) {
 
         return {
           id: res.id,
-          originalId: res.originalId as string | number,
-          parentId: res.parentId as string | number | undefined,
+          originalId: String(res.originalId),
+          parentId: res.parentId ? String(res.parentId) : undefined,
           title: String(res.title || ""),
           path: String(res.path || ""),
           contentSnippet: snippet,

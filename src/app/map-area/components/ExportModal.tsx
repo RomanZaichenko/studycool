@@ -101,7 +101,9 @@ export function ExportModal({
   };
 
   const handleExport = () => {
-    const currentMap = maps.find((m) => m.id === currentMapId);
+    const currentMap = currentMapId != null 
+      ? maps.find((m) => m.id === String(currentMapId)) 
+      : undefined;
 
     const finalFileName = propFileName || currentMap?.title || "My_Map";
     const finalNodes = propNodes || globalNodes;

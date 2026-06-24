@@ -45,7 +45,7 @@ type HistoryState = { nodes: Node[]; edges: Edge[] };
 export interface MapEditorState {
   nodes: Node[];
   edges: Edge[];
-  currentMapId: number | null;
+  currentMapId: string | null;
   isNoteEditorOpen: boolean;
   selectedNodeId: string | null;
 
@@ -73,7 +73,7 @@ export interface MapEditorState {
     handleId: string,
     endHandleId: string
   ) => void;
-  loadMapData: (mapId: number, nodes: Node[], edges: Edge[]) => void;
+  loadMapData: (mapId: string, nodes: Node[], edges: Edge[]) => void;
   resetMap: () => void;
 }
 

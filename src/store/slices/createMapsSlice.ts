@@ -7,15 +7,15 @@ import { Node as FlowNode } from "@xyflow/react";
 export interface MapsSlice {
   maps: Map[];
   addMap: (projectData : MapDto) => void;
-  updateMapAccessTime: (id: number) => void;
-  updateMapNodes: (id: number, nodes: FlowNode[]) => void; 
+  updateMapAccessTime: (id: string) => void;
+  updateMapNodes: (id: string, nodes: FlowNode[]) => void; 
 }
 
 export const createMapsSlice: StateCreator<MapsSlice> = (set) => ({
   maps: [],
   addMap: (mapData) => {
     const newMap: Map = {
-          id: Date.now(),
+          id: crypto.randomUUID(),
           projectId: mapData.projectId ?? GENERAL_PROJECT_ID,
           title: mapData.title,
           description: mapData.description,
@@ -29,7 +29,7 @@ export const createMapsSlice: StateCreator<MapsSlice> = (set) => ({
     }))
   },
 
-  updateMapAccessTime: (id : number) => 
+  updateMapAccessTime: (id : string) => 
     set((state) => ({
       maps: state.maps.map(map => 
         map.id === id ? { ...map, lastOpened: new Date() } : map

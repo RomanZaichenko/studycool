@@ -19,7 +19,7 @@ export default function MapCreator({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [selectedProjectId, setSelectedProjectId] =
-    useState<number>(GENERAL_PROJECT_ID);
+    useState<string>(GENERAL_PROJECT_ID);
 
   const projects = useMainStore((state) => state.projects);
 
@@ -35,7 +35,7 @@ export default function MapCreator({
     setTitle("");
     setDescription("");
     setSelectedProjectId(GENERAL_PROJECT_ID);
-    closeWindow()
+    closeWindow();
   };
 
   return (
@@ -58,7 +58,7 @@ export default function MapCreator({
         <select
           className={inputStyles}
           value={selectedProjectId}
-          onChange={(e) => setSelectedProjectId(Number(e.target.value))}
+          onChange={(e) => setSelectedProjectId(e.target.value)}
         >
           {projects.map((project) => (
             <option key={project.id} value={project.id}>

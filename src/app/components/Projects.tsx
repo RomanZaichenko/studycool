@@ -32,6 +32,8 @@ export default function Projects() {
       if (a.title === "General" || a.title === "Загальний") return 1;
       if (b.title === "General" || b.title === "Загальний") return -1;
 
+      const timeA = new Date(a.createdAt).getTime()
+      const timeB = new Date(b.createdAt).getTime()
       switch (sortBy) {
         case "name-asc":
           return a.title.localeCompare(b.title);
@@ -39,11 +41,11 @@ export default function Projects() {
           return b.title.localeCompare(a.title);
         case "newest":
         case "recent":
-          return b.id - a.id;
+          return timeB - timeA;
         case "oldest":
-          return a.id - b.id;
+          return timeA - timeB;
         default:
-          return b.id - a.id;
+          return timeB - timeA;
       }
     });
   }, [filteredProjects, sortBy]);

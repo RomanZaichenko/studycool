@@ -55,10 +55,10 @@ export default function RecentMaps() {
     );
 
     const newMap: Map = {
-      id: Date.now(),
+      id: crypto.randomUUID(),
       title: mapData.title,
       description: mapData.description,
-      projectId: mapData.projectId || generalProject?.id || 0,
+      projectId: mapData.projectId || generalProject?.id || "",
       createdAt: new Date(),
       lastOpened: new Date(),
       miniMapIcon: undefined,

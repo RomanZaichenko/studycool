@@ -2,7 +2,7 @@ import { StateCreator } from "zustand";
 import Project from "@/app/interfaces/Project";
 import ProjectDto from "@/app/interfaces/ProjectDto";
 
-export const GENERAL_PROJECT_ID = 0;
+export const GENERAL_PROJECT_ID = "general-project";
 
 export const defaultProject: Project = {
   id: GENERAL_PROJECT_ID,
@@ -20,7 +20,7 @@ export const createProjectsSlice: StateCreator<ProjectsSlice> = (set) => ({
   projects: [defaultProject],
   addProject: (projectData) => {
     const newProject: Project = {
-      id: Date.now(),
+      id: crypto.randomUUID(),
       title: projectData.title,
       createdAt: new Date(),
       lastOpened: new Date(),
@@ -35,7 +35,7 @@ export const createProjectsSlice: StateCreator<ProjectsSlice> = (set) => ({
     }));
   },
 
-  updateProjectAccessTime: (id: number) => 
+  updateProjectAccessTime: (id: string) => 
     set((state) => ({
       projects: state.projects.map(p => 
         p.id === id ? { ...p, lastOpened: new Date() } : p
