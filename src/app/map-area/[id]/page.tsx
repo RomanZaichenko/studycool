@@ -59,7 +59,10 @@ function MapFlow() {
   const activeNode = nodes.find((n) => n.id === selectedNodeId);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const hasAutoOpened = useRef(false);
-  const isInitialized = useRef(false);
+
+  // Запам'ятовуємо ID мапи, яку щойно завантажили,
+  // щоб не спрацьовувало автозбереження порожнього стейту на першому рендері
+  const lastLoadedMapId = useRef<string | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -94,31 +97,30 @@ function MapFlow() {
     }
   }, [openNodeId, nodes, openNoteEditor, setCenter]);
 
+  // Автозбереження: спрацює при РЕАЛЬНИХ змінах, пропускаючи рендер при відкритті
   useEffect(() => {
-    if (currentMapId !== null) {
-      if (!isInitialized.current) {
-        if (nodes.length > 0 || edges.length > 0) {
-          isInitialized.current = true;
-        } else {
-          return;
-        }
-      }
+    if (currentMapId === null) return;
 
-      localStorage.setItem(
-        `map_data_${currentMapId}`,
-        JSON.stringify({ nodes, edges })
-      );
+    // Якщо ми щойно відкрили цю мапу (перший рендер після loadMapData) —
+    // запам'ятовуємо ID і перериваємо функцію, щоб не затерти базу
+    if (lastLoadedMapId.current !== currentMapId) {
+      lastLoadedMapId.current = currentMapId;
+      return;
+    }
 
-      if (updateMapNodes) {
-        updateMapNodes(currentMapId, nodes as Node[], edges as Edge[]);
-      }
+    localStorage.setItem(
+      `map_data_${currentMapId}`,
+      JSON.stringify({ nodes, edges })
+    );
+
+    if (updateMapNodes) {
+      updateMapNodes(currentMapId, nodes as Node[], edges as Edge[]);
     }
   }, [nodes, edges, currentMapId, updateMapNodes]);
 
   const handleImport = (data: { nodes: Node[]; edges: Edge[] }) => {
     setNodes(data.nodes);
     setEdges(data.edges);
-    isInitialized.current = true;
 
     setTimeout(() => {
       fitView({ duration: 500, padding: 0.2 });
@@ -259,46 +261,41 @@ export default function MapArea() {
     updateLastOpened(mapId);
 
     const fetchAndLoadMap = async () => {
-      const savedMapData = localStorage.getItem(`map_data_${mapId}`);
       let fetchedNodes: Node[] = [];
       let fetchedEdges: Edge[] = [];
-      let hasLocalData = false;
 
+      // 1. Читаємо локалсторадж для миттєвого відображення
+      const savedMapData = localStorage.getItem(`map_data_${mapId}`);
       if (savedMapData) {
         try {
           const parsedData = JSON.parse(savedMapData);
-          if (parsedData.nodes && parsedData.nodes.length > 0) {
-            fetchedNodes = parsedData.nodes;
-            fetchedEdges = parsedData.edges || [];
-            hasLocalData = true;
-          }
+          fetchedNodes = parsedData.nodes || [];
+          fetchedEdges = parsedData.edges || [];
         } catch (e) {
-          console.error("Помилка парсингу локальних даних мапи:", e);
+          console.error("Помилка парсингу локальних даних:", e);
         }
       }
 
-      if (!hasLocalData) {
-        try {
-          const response = await fetch(`/api/maps/${mapId}`, {
-            cache: "no-store",
-          });
-          if (response.ok) {
-            const dbMap = await response.json();
-            fetchedNodes = dbMap.nodes || [];
-            fetchedEdges = dbMap.edges || [];
+      // 2. ЗАВЖДИ робимо запит до Neon БД, бо сервер має найвищий пріоритет
+      try {
+        const response = await fetch(`/api/maps/${mapId}`, {
+          cache: "no-store",
+        });
+        if (response.ok) {
+          const dbMap = await response.json();
+          if (dbMap.nodes) fetchedNodes = dbMap.nodes;
+          if (dbMap.edges) fetchedEdges = dbMap.edges;
 
-            if (fetchedNodes.length > 0 || fetchedEdges.length > 0) {
-              localStorage.setItem(
-                `map_data_${mapId}`,
-                JSON.stringify({ nodes: fetchedNodes, edges: fetchedEdges })
-              );
-            }
-          }
-        } catch (e) {
-          console.error("Помилка завантаження мапи з бази даних:", e);
+          localStorage.setItem(
+            `map_data_${mapId}`,
+            JSON.stringify({ nodes: fetchedNodes, edges: fetchedEdges })
+          );
         }
+      } catch (e) {
+        console.error("Помилка завантаження з БД:", e);
       }
 
+      // 3. Віддаємо фінальні дані в Zustand
       loadMapData(mapId, fetchedNodes, fetchedEdges);
     };
 
