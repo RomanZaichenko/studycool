@@ -2,14 +2,14 @@ import { StateCreator } from "zustand";
 import Map from "@/app/interfaces/Map";
 import MapDto from "@/app/interfaces/MapDto";
 import { GENERAL_PROJECT_ID } from "./createProjectsSlice";
-import { Node as FlowNode } from "@xyflow/react";
+import { Node as FlowNode, type Edge } from "@xyflow/react";
 
 export interface MapsSlice {
   maps: Map[];
   setMaps: (maps: Map[]) => void;
   addMap: (projectData: MapDto) => Promise<void>;
   updateMapAccessTime: (id: string) => void;
-  updateMapNodes: (id: string, nodes: FlowNode[]) => void;
+  updateMapNodes: (id: string, nodes: FlowNode[], edges: Edge[]) => void;
 }
 
 export const createMapsSlice: StateCreator<MapsSlice> = (set) => ({
@@ -65,17 +65,17 @@ export const createMapsSlice: StateCreator<MapsSlice> = (set) => ({
     }).catch((e) => console.error(e));
   },
 
-  updateMapNodes: (mapId, nodes) => {
+  updateMapNodes: (mapId, nodes, edges) => {
     set((state) => ({
       maps: state.maps.map((m) =>
-        m.id === mapId ? { ...m, nodes: nodes } : m
+        m.id === mapId ? { ...m, nodes: nodes, edges: edges } : m
       ),
     }));
 
     fetch(`/api/maps/${mapId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nodes }),
+      body: JSON.stringify({ nodes, edges }),
     }).catch((e) => console.error(e));
   },
 });

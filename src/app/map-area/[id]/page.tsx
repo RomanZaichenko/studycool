@@ -59,7 +59,6 @@ function MapFlow() {
   const activeNode = nodes.find((n) => n.id === selectedNodeId);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const hasAutoOpened = useRef(false);
-
   const isInitialized = useRef(false);
 
   useEffect(() => {
@@ -98,7 +97,7 @@ function MapFlow() {
   useEffect(() => {
     if (currentMapId !== null) {
       if (!isInitialized.current) {
-        if (nodes.length > 0) {
+        if (nodes.length > 0 || edges.length > 0) {
           isInitialized.current = true;
         } else {
           return;
@@ -109,7 +108,10 @@ function MapFlow() {
         `map_data_${currentMapId}`,
         JSON.stringify({ nodes, edges })
       );
-      if (updateMapNodes) updateMapNodes(currentMapId, nodes as Node[]);
+
+      if (updateMapNodes) {
+        updateMapNodes(currentMapId, nodes as Node[], edges as Edge[]);
+      }
     }
   }, [nodes, edges, currentMapId, updateMapNodes]);
 
@@ -285,7 +287,7 @@ export default function MapArea() {
             fetchedNodes = dbMap.nodes || [];
             fetchedEdges = dbMap.edges || [];
 
-            if (fetchedNodes.length > 0) {
+            if (fetchedNodes.length > 0 || fetchedEdges.length > 0) {
               localStorage.setItem(
                 `map_data_${mapId}`,
                 JSON.stringify({ nodes: fetchedNodes, edges: fetchedEdges })
