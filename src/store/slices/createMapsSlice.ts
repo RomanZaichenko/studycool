@@ -6,35 +6,64 @@ import { Node as FlowNode } from "@xyflow/react";
 
 export interface MapsSlice {
   maps: Map[];
-  addMap: (projectData : MapDto) => void;
+  setMaps: (maps: Map[]) => void;
+  addMap: (projectData: MapDto) => Promise<void>;
   updateMapAccessTime: (id: string) => void;
-  updateMapNodes: (id: string, nodes: FlowNode[]) => void; 
+  updateMapNodes: (id: string, nodes: FlowNode[]) => void;
 }
 
 export const createMapsSlice: StateCreator<MapsSlice> = (set) => ({
   maps: [],
-  addMap: (mapData) => {
+
+  setMaps: (maps) => set({ maps }),
+
+  addMap: async (mapData) => {
+    const tempId = crypto.randomUUID();
+
     const newMap: Map = {
-          id: crypto.randomUUID(),
-          projectId: mapData.projectId ?? GENERAL_PROJECT_ID,
+      id: tempId,
+      projectId: mapData.projectId ?? GENERAL_PROJECT_ID,
+      title: mapData.title,
+      description: mapData.description,
+      createdAt: new Date(),
+      lastOpened: new Date(),
+      miniMapIcon: undefined,
+    };
+
+    set((state) => ({
+      maps: [newMap, ...state.maps],
+    }));
+
+    try {
+      await fetch("/api/maps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: tempId,
           title: mapData.title,
           description: mapData.description,
-          createdAt: new Date(),
-          lastOpened: new Date(),
-          miniMapIcon: undefined,
-        };
-
-    set((state) => ({
-      maps: [newMap, ...state.maps]
-    }))
+          projectId:
+            mapData.projectId === GENERAL_PROJECT_ID ? null : mapData.projectId,
+        }),
+      });
+    } catch (e) {
+      console.error("Помилка збереження мапи в БД:", e);
+    }
   },
 
-  updateMapAccessTime: (id : string) => 
+  updateMapAccessTime: (id: string) => {
     set((state) => ({
-      maps: state.maps.map(map => 
+      maps: state.maps.map((map) =>
         map.id === id ? { ...map, lastOpened: new Date() } : map
-      )
-    })), 
+      ),
+    }));
+
+    fetch(`/api/maps/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    }).catch((e) => console.error(e));
+  },
 
   updateMapNodes: (mapId, nodes) => {
     set((state) => ({
@@ -42,5 +71,11 @@ export const createMapsSlice: StateCreator<MapsSlice> = (set) => ({
         m.id === mapId ? { ...m, nodes: nodes } : m
       ),
     }));
+
+    fetch(`/api/maps/${mapId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nodes }),
+    }).catch((e) => console.error(e));
   },
 });
