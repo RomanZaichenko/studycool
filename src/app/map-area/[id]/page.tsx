@@ -60,12 +60,14 @@ function MapFlow() {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const hasAutoOpened = useRef(false);
 
+  const isInitialized = useRef(false);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isNoteEditorOpen) return;
 
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
-        e.preventDefault(); // Запобігаємо стандартній поведінці браузера
+        e.preventDefault();
 
         if (e.shiftKey) {
           redo();
@@ -95,6 +97,14 @@ function MapFlow() {
 
   useEffect(() => {
     if (currentMapId !== null) {
+      if (!isInitialized.current) {
+        if (nodes.length > 0) {
+          isInitialized.current = true;
+        } else {
+          return;
+        }
+      }
+
       localStorage.setItem(
         `map_data_${currentMapId}`,
         JSON.stringify({ nodes, edges })
@@ -106,6 +116,7 @@ function MapFlow() {
   const handleImport = (data: { nodes: Node[]; edges: Edge[] }) => {
     setNodes(data.nodes);
     setEdges(data.edges);
+    isInitialized.current = true;
 
     setTimeout(() => {
       fitView({ duration: 500, padding: 0.2 });
@@ -244,20 +255,53 @@ export default function MapArea() {
   useEffect(() => {
     if (!mapId) return;
     updateLastOpened(mapId);
-    const savedMapData = localStorage.getItem(`map_data_${mapId}`);
-    let fetchedNodes: Node[] = [];
-    let fetchedEdges: Edge[] = [];
 
-    if (savedMapData) {
-      try {
-        const parsedData = JSON.parse(savedMapData);
-        fetchedNodes = parsedData.nodes || [];
-        fetchedEdges = parsedData.edges || [];
-      } catch (e) {
-        console.error("Помилка парсингу даних мапи", e);
+    const fetchAndLoadMap = async () => {
+      const savedMapData = localStorage.getItem(`map_data_${mapId}`);
+      let fetchedNodes: Node[] = [];
+      let fetchedEdges: Edge[] = [];
+      let hasLocalData = false;
+
+      if (savedMapData) {
+        try {
+          const parsedData = JSON.parse(savedMapData);
+          if (parsedData.nodes && parsedData.nodes.length > 0) {
+            fetchedNodes = parsedData.nodes;
+            fetchedEdges = parsedData.edges || [];
+            hasLocalData = true;
+          }
+        } catch (e) {
+          console.error("Помилка парсингу локальних даних мапи:", e);
+        }
       }
-    }
-    loadMapData(mapId, fetchedNodes, fetchedEdges);
+
+      if (!hasLocalData) {
+        try {
+          const response = await fetch(`/api/maps/${mapId}`, {
+            cache: "no-store",
+          });
+          if (response.ok) {
+            const dbMap = await response.json();
+            fetchedNodes = dbMap.nodes || [];
+            fetchedEdges = dbMap.edges || [];
+
+            if (fetchedNodes.length > 0) {
+              localStorage.setItem(
+                `map_data_${mapId}`,
+                JSON.stringify({ nodes: fetchedNodes, edges: fetchedEdges })
+              );
+            }
+          }
+        } catch (e) {
+          console.error("Помилка завантаження мапи з бази даних:", e);
+        }
+      }
+
+      loadMapData(mapId, fetchedNodes, fetchedEdges);
+    };
+
+    fetchAndLoadMap();
+
     return () => resetMap();
   }, [mapId, loadMapData, resetMap, updateLastOpened]);
 

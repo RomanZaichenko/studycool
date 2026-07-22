@@ -2,6 +2,42 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id: mapId } = await params;
+
+    const map = await prisma.mindMap.findFirst({
+      where: {
+        id: mapId,
+        userId: session.user.id,
+      },
+      select: {
+        id: true,
+        title: true,
+        nodes: true,
+        edges: true,
+      },
+    });
+
+    if (!map) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(map);
+  } catch (error) {
+    console.error("Помилка отримання мапи:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
+
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
