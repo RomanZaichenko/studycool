@@ -120,7 +120,7 @@ describe("MapCreator Component - UI Integration Tests", () => {
       mapData: {
         title: "University Map",
         description: "Campus layout",
-        projectId: 1,
+        projectId: "1",
       },
     });
 
