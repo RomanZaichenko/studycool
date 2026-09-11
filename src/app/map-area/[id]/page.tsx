@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import {
   ReactFlow,
   Background,
   ConnectionMode,
   ReactFlowProvider,
-  Panel,
   useReactFlow,
   type Node,
   type Edge,
@@ -17,8 +16,13 @@ import Zoomer from "../components/Zoomer";
 import NoteEditor from "@/app/map-area/components/NoteEditor";
 import { ExportModal } from "../components/ExportModal";
 import { ImportModal } from "../components/ImportModal";
+import { MapToolbar } from "../components/MapToolbar";
 
 import { useMapLogic } from "../hooks/useMapLogic";
+import { useLoadMapData } from "../hooks/useLoadMapData";
+import { useAutoSaveMap } from "../hooks/useAutoSaveMap";
+import { useAutoOpenNode } from "../hooks/useAutoOpenNode";
+import { useUndoRedoHotkeys } from "../hooks/useUndoRedoHotkeys";
 import { useMapEditorStore } from "@/store/useMapEditorStore";
 import { useMainStore } from "@/store/useMainStore";
 
@@ -58,65 +62,10 @@ function MapFlow() {
 
   const activeNode = nodes.find((n) => n.id === selectedNodeId);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const hasAutoOpened = useRef(false);
 
-  // Запам'ятовуємо ID мапи, яку щойно завантажили,
-  // щоб не спрацьовувало автозбереження порожнього стейту на першому рендері
-  const lastLoadedMapId = useRef<string | null>(null);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (isNoteEditorOpen) return;
-
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
-        e.preventDefault();
-
-        if (e.shiftKey) {
-          redo();
-        } else {
-          undo();
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [undo, redo, isNoteEditorOpen]);
-
-  useEffect(() => {
-    if (openNodeId && nodes.length > 0 && !hasAutoOpened.current) {
-      const targetNode = nodes.find((n) => n.id === openNodeId);
-      if (targetNode) {
-        openNoteEditor(openNodeId);
-        setCenter(targetNode.position.x, targetNode.position.y, {
-          zoom: 1.5,
-          duration: 800,
-        });
-        hasAutoOpened.current = true;
-      }
-    }
-  }, [openNodeId, nodes, openNoteEditor, setCenter]);
-
-  // Автозбереження: спрацює при РЕАЛЬНИХ змінах, пропускаючи рендер при відкритті
-  useEffect(() => {
-    if (currentMapId === null) return;
-
-    // Якщо ми щойно відкрили цю мапу (перший рендер після loadMapData) —
-    // запам'ятовуємо ID і перериваємо функцію, щоб не затерти базу
-    if (lastLoadedMapId.current !== currentMapId) {
-      lastLoadedMapId.current = currentMapId;
-      return;
-    }
-
-    localStorage.setItem(
-      `map_data_${currentMapId}`,
-      JSON.stringify({ nodes, edges })
-    );
-
-    if (updateMapNodes) {
-      updateMapNodes(currentMapId, nodes as Node[], edges as Edge[]);
-    }
-  }, [nodes, edges, currentMapId, updateMapNodes]);
+  useUndoRedoHotkeys(undo, redo, isNoteEditorOpen);
+  useAutoOpenNode(openNodeId, nodes, openNoteEditor, setCenter);
+  useAutoSaveMap(currentMapId, nodes, edges, updateMapNodes);
 
   const handleImport = (data: { nodes: Node[]; edges: Edge[] }) => {
     setNodes(data.nodes);
@@ -160,64 +109,14 @@ function MapFlow() {
         <Background />
         <Zoomer />
 
-        <Panel position="top-right" className="flex gap-3 p-4">
-          <div className="mr-2 flex overflow-hidden rounded-sm border border-gray-200 bg-white shadow-sm">
-            <button
-              onClick={undo}
-              disabled={past.length === 0}
-              title="Undo (Ctrl+Z)"
-              className="px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-30"
-            >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
-                />
-              </svg>
-            </button>
-            <div className="w-px bg-gray-200"></div>
-            <button
-              onClick={redo}
-              disabled={future.length === 0}
-              title="Redo (Ctrl+Shift+Z)"
-              className="px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-30"
-            >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6"
-                />
-              </svg>
-            </button>
-          </div>
-
-          <button
-            onClick={() => setIsImportModalOpen(true)}
-            className="rounded-sm bg-white px-5 py-2.5 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
-          >
-            Import
-          </button>
-          <button
-            onClick={() => mapLogic.setIsOpenExport(true)}
-            className="rounded-sm bg-gray-800 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-gray-700"
-          >
-            Export
-          </button>
-        </Panel>
+        <MapToolbar
+          undo={undo}
+          redo={redo}
+          canUndo={past.length > 0}
+          canRedo={future.length > 0}
+          onImportClick={() => setIsImportModalOpen(true)}
+          onExportClick={() => mapLogic.setIsOpenExport(true)}
+        />
       </ReactFlow>
 
       {selectedNodeId && (
@@ -252,57 +151,8 @@ export default function MapArea() {
   const params = useParams();
   const rawId = params?.id;
   const mapId = Array.isArray(rawId) ? rawId[0] : rawId;
-  const loadMapData = useMapEditorStore((state) => state.loadMapData);
-  const resetMap = useMapEditorStore((state) => state.resetMap);
-  const updateLastOpened = useMainStore((state) => state.updateMapAccessTime);
 
-  useEffect(() => {
-    if (!mapId) return;
-    updateLastOpened(mapId);
-
-    const fetchAndLoadMap = async () => {
-      let fetchedNodes: Node[] = [];
-      let fetchedEdges: Edge[] = [];
-
-      // 1. Читаємо локалсторадж для миттєвого відображення
-      const savedMapData = localStorage.getItem(`map_data_${mapId}`);
-      if (savedMapData) {
-        try {
-          const parsedData = JSON.parse(savedMapData);
-          fetchedNodes = parsedData.nodes || [];
-          fetchedEdges = parsedData.edges || [];
-        } catch (e) {
-          console.error("Помилка парсингу локальних даних:", e);
-        }
-      }
-
-      // 2. ЗАВЖДИ робимо запит до Neon БД, бо сервер має найвищий пріоритет
-      try {
-        const response = await fetch(`/api/maps/${mapId}`, {
-          cache: "no-store",
-        });
-        if (response.ok) {
-          const dbMap = await response.json();
-          if (dbMap.nodes) fetchedNodes = dbMap.nodes;
-          if (dbMap.edges) fetchedEdges = dbMap.edges;
-
-          localStorage.setItem(
-            `map_data_${mapId}`,
-            JSON.stringify({ nodes: fetchedNodes, edges: fetchedEdges })
-          );
-        }
-      } catch (e) {
-        console.error("Помилка завантаження з БД:", e);
-      }
-
-      // 3. Віддаємо фінальні дані в Zustand
-      loadMapData(mapId, fetchedNodes, fetchedEdges);
-    };
-
-    fetchAndLoadMap();
-
-    return () => resetMap();
-  }, [mapId, loadMapData, resetMap, updateLastOpened]);
+  useLoadMapData(mapId);
 
   return (
     <ReactFlowProvider>
