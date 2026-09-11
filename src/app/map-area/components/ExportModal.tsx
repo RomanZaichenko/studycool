@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { type Node as FlowNode, Edge } from "@xyflow/react";
 
-import { processExport } from "@/lib/exportService";
+import { processExport } from "@/lib/export";
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -101,9 +101,10 @@ export function ExportModal({
   };
 
   const handleExport = () => {
-    const currentMap = currentMapId != null 
-      ? maps.find((m) => m.id === String(currentMapId)) 
-      : undefined;
+    const currentMap =
+      currentMapId != null
+        ? maps.find((m) => m.id === String(currentMapId))
+        : undefined;
 
     const finalFileName = propFileName || currentMap?.title || "My_Map";
     const finalNodes = propNodes || globalNodes;

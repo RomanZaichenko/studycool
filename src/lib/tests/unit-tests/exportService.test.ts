@@ -1,14 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { type Node as FlowNode, type Edge } from "@xyflow/react";
-import {
-  rgbToHex,
-  resolveColorToRGB,
-  parseGraph,
-  formatAsStudyCool,
-  formatAsTxt,
-  formatAsMarkdown,
-  type GraphData,
-} from "../../exportService";
+import { rgbToHex, resolveColorToRGB } from "../../export/colors";
+import { parseGraph, GraphData } from "../../export/graph";
+import { formatAsStudyCool } from "../../export/formatters/studycoolFormatter";
+import { formatAsTxt } from "../../export/formatters/txtFormatter";
+import { formatAsMarkdown } from "../../export/formatters/markdownFormatter";
 
 describe("rgbToHex", () => {
   it("have to convert an rgb() string to an uppercase hex triplet", () => {
