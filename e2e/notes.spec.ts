@@ -5,6 +5,8 @@ test.describe("Note Editor E2E Flow", () => {
     await page.goto("http://localhost:3000/map-area/1");
 
     const canvas = page.locator(".react-flow__renderer");
+    await canvas.waitFor({ state: "visible" });
+    await page.waitForTimeout(300);
     await canvas.click({ button: "right", position: { x: 300, y: 300 } });
 
     await expect(page.locator(".react-flow__node").first()).toBeVisible();

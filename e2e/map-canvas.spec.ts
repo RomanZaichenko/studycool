@@ -7,10 +7,11 @@ test.describe('Knowledge Map Canvas Interaction', () => {
     await page.getByPlaceholder('Name', { exact: true }).fill('Canvas Test Map');
     await page.getByRole('button', { name: 'Create', exact: true }).click();
 
-    await expect(page).toHaveURL(/.*\/map-area\/\d+/);
+    await expect(page).toHaveURL(/.*\/map-area\/[^/]+/);
 
     const canvas = page.locator('.react-flow');
     await expect(canvas).toBeVisible();
+    await page.waitForTimeout(300);
 
     const box = await canvas.boundingBox();
     expect(box).not.toBeNull();

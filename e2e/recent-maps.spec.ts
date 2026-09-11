@@ -17,7 +17,7 @@ test.describe('Create map card', () => {
     
     await page.getByRole('button', { name: 'Create', exact: true }).click();
 
-    await expect(page).toHaveURL(/.*\/map-area\/\d+/);
+    await expect(page).toHaveURL(/.*\/map-area\/[^/]+/);
     const flowCanvas = page.locator('.react-flow');
     await expect(flowCanvas).toBeVisible();
   });
