@@ -1,4 +1,5 @@
 import { Panel } from "@xyflow/react";
+import { Redo2, Undo2 } from "lucide-react";
 
 interface MapToolbarProps {
   undo: () => void;
@@ -26,19 +27,7 @@ export function MapToolbar({
           title="Undo (Ctrl+Z)"
           className="px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-30"
         >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
-            />
-          </svg>
+          <Undo2 strokeWidth={2} className="h-5 w-5" />
         </button>
         <div className="w-px bg-gray-200"></div>
         <button
@@ -47,19 +36,7 @@ export function MapToolbar({
           title="Redo (Ctrl+Shift+Z)"
           className="px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-30"
         >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6"
-            />
-          </svg>
+          <Redo2 strokeWidth={2} className="h-5 w-5" />
         </button>
       </div>
 

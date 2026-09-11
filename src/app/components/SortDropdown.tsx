@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 export type SortOption =
@@ -48,21 +49,12 @@ export default function SortDropdown({ value, onChange }: SortDropdownProps) {
         className="flex items-center gap-2 rounded border border-[#333]/20 bg-white px-3 py-1.5 text-gray-700 transition-colors hover:border-[#333]/40"
       >
         <span>{selectedLabel}</span>
-        <svg
+        <ChevronDown
+          strokeWidth={2}
           className={`h-4 w-4 transition-transform ${
             isOpen ? "rotate-180" : ""
           }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
+        />
       </button>
 
       {isOpen && (

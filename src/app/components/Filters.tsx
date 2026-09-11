@@ -1,8 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useMainStore } from "@/store/useMainStore";
-import CheckIcon from "./CheckIcon";
-import MinusIcon from "./MinusIcon";
+import { Minus, Check } from "lucide-react";
 
 export default function Filters() {
   const [inputValue, setInputValue] = useState<string>("");
@@ -19,11 +18,11 @@ export default function Filters() {
   };
 
   return (
-    <aside className="flex h-[85vh] max-w-sm sticky z-0 flex-col rounded-lg bg-white p-5">
+    <aside className="sticky z-0 flex h-[85vh] max-w-sm flex-col rounded-lg bg-white p-5">
       <h2>Filters</h2>
       <div className="flex h-full flex-col justify-between overflow-hidden">
         <div className="custom-scrollbar flex flex-col overflow-y-auto pr-2">
-          {filters.map((filter : string) => (
+          {filters.map((filter: string) => (
             <div
               key={filter}
               className="filter-item-container group mb-2 flex flex-row items-center justify-between"
@@ -38,7 +37,10 @@ export default function Filters() {
                 />
 
                 <div className="bg-primary-color peer-checked:bg-primary-color peer-hover:bg-primary-hover flex h-5 w-5 items-center justify-center rounded border-2 border-none transition-all duration-200 ease-in-out peer-checked:[&>svg]:opacity-100">
-                  <CheckIcon />
+                  <Check
+                    strokeWidth={3}
+                    className="h-4 w-4 text-white opacity-0 transition-opacity duration-200 peer-checked:opacity-100"
+                  />
                 </div>
 
                 <span className="font-victor text-ui-text-color text-2xl select-none">
@@ -50,7 +52,10 @@ export default function Filters() {
                 className="remove-filter-icon mr-5 cursor-pointer opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                 onClick={() => removeFilter(filter)}
               >
-                <MinusIcon className="h-5 w-5 text-gray-400 hover:text-gray-500" />
+                <Minus
+                  strokeWidth={2.5}
+                  className="h-5 w-5 text-gray-400 hover:text-gray-500"
+                />
               </div>
             </div>
           ))}

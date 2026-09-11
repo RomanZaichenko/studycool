@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import CrossIcon from "./CrossIcon";
+import { X } from "lucide-react";
 
 interface ModalProps {
   isVisible: boolean;
@@ -46,7 +46,7 @@ export default function Modal({
             onClick={closeWindow}
             className="cursor-pointer p-2 transition-opacity hover:opacity-70"
           >
-            <CrossIcon />
+            <X strokeWidth={2.5} className="text-ui-dark-stroke h-10 w-10" />
           </button>
         </div>
 

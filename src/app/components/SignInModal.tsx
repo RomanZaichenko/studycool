@@ -3,6 +3,7 @@
 import { useState, useEffect, useTransition } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { loginAction, registerAction, logInWithGoogleAction } from "@/app/actions/auth.actions";
+import { X } from "lucide-react";
 
 export function SignInModal() {
   const { isSignInModalOpen, closeSignInModal } = useAuthStore();
@@ -58,9 +59,7 @@ export function SignInModal() {
           className="absolute top-4 right-4 text-gray-400 transition-colors hover:text-gray-600"
           aria-label="Close modal"
         >
-          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <X strokeWidth={1.5} className="h-6 w-6" />
         </button>
 
         <div className="mb-6 flex items-center justify-between">

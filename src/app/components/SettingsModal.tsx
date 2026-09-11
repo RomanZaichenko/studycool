@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useSettingsStore } from "@/store/useSettingsStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { Check, ChevronDown, X } from "lucide-react";
 
 export function SettingsModal() {
   const {
@@ -52,27 +53,13 @@ export function SettingsModal() {
           if (isLangDropdownOpen) setIsLangDropdownOpen(false);
         }}
       >
-        {/* Кнопка закриття */}
         <button
           onClick={closeSettings}
           className="absolute top-4 right-4 z-10 text-gray-400 transition-colors hover:text-gray-600"
         >
-          <svg
-            className="h-6 w-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <X strokeWidth={1.5} className="h-6 w-6" />
         </button>
 
-        {/* Сайдбар */}
         <div className="flex w-64 flex-col gap-2 border-r border-gray-200 bg-gray-50 p-6">
           <h2 className="mb-4 text-xl font-bold text-gray-800">Settings</h2>
           <button
@@ -138,19 +125,11 @@ export function SettingsModal() {
                       </span>
                       <span>{currentLangObj.name}</span>
                     </div>
-                    <svg
+
+                    <ChevronDown
+                      strokeWidth={2}
                       className={`h-5 w-5 text-gray-400 transition-transform ${isLangDropdownOpen ? "rotate-180" : ""}`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                    />
                   </button>
 
                   {isLangDropdownOpen && (
@@ -173,19 +152,10 @@ export function SettingsModal() {
                             <span>{lang.name}</span>
                           </div>
                           {language === lang.id && (
-                            <svg
+                            <Check
+                              strokeWidth={3}
                               className="text-primary-color h-4 w-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={3}
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
+                            />
                           )}
                         </button>
                       ))}

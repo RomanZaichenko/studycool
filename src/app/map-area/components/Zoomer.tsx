@@ -1,8 +1,7 @@
 "use client";
 
 import { useReactFlow } from "@xyflow/react";
-import MinusIcon from "../../components/MinusIcon";
-import PlusIcon from "@/app/components/PlusIcon";
+import { Minus, Plus } from "lucide-react";
 
 export default function Zoomer() {
   const { zoomIn, zoomOut } = useReactFlow();
@@ -19,10 +18,10 @@ export default function Zoomer() {
   return (
     <div className="nopan fixed right-10 bottom-10 z-50 flex flex-col gap-2">
       <button className={buttonStyles} onClick={() => zoomIn()}>
-        <PlusIcon className="h-7 w-7" />
+        <Plus strokeWidth={2.5} className="h-7 w-7" />
       </button>
       <button className={buttonStyles} onClick={() => zoomOut()}>
-        <MinusIcon className="h-7 w-7" />
+        <Minus strokeWidth={2.5} className="h-7 w-7" />
       </button>
     </div>
   );

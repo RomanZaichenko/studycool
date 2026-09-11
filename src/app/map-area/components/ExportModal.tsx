@@ -5,7 +5,7 @@ import { useMainStore } from "@/store/useMainStore";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { type Node as FlowNode, Edge } from "@xyflow/react";
-
+import { X } from "lucide-react";
 import { processExport } from "@/lib/export";
 
 interface ExportModalProps {
@@ -134,19 +134,7 @@ export function ExportModal({
           onClick={onClose}
           className="absolute top-8 right-8 z-10 text-gray-300 hover:text-gray-500"
         >
-          <svg
-            className="h-10 w-10"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <X strokeWidth={1.5} className="h-10 w-10" />
         </button>
 
         <h2 className="mb-8 text-4xl font-bold text-gray-800">{modalTitle}</h2>

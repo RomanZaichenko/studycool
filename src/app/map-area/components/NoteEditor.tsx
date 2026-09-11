@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { ComboBox } from "./ComboBox";
 import { useNoteEditorLogic } from "../hooks/useNoteEditor";
 import { ExportModal } from "./ExportModal";
+import { X } from "lucide-react";
 
 interface NoteEditorProps {
   id: string;
@@ -81,19 +82,7 @@ export default function NoteEditor({
           }}
           className="absolute top-6 right-8 z-10 text-gray-300 transition-colors hover:text-gray-500"
         >
-          <svg
-            className="h-10 w-10"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <X strokeWidth={1.5} className="h-10 w-10" />
         </button>
 
         <div className="flex w-full gap-8 overflow-hidden">

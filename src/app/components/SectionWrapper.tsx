@@ -1,3 +1,4 @@
+import { ChevronDown } from "lucide-react";
 import { ReactNode } from "react";
 
 interface SectionWrapperProps {
@@ -33,21 +34,12 @@ export default function SectionWrapper({
           <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>
 
           {onToggleCollapse && (
-            <svg
+            <ChevronDown
+              strokeWidth={2}
               className={`mt-[-15px] h-10 w-10 text-[#626060] transition-transform duration-200 ${
                 isCollapsed ? "-rotate-90" : "rotate-0"
               }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
+            />
           )}
         </button>
 
