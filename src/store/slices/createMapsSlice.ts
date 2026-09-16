@@ -62,7 +62,9 @@ export const createMapsSlice: StateCreator<MapsSlice> = (set) => ({
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
-    }).catch((e) => console.error(e));
+    }).catch((e) =>
+      console.error("Помилка оновлення часу доступу до мапи:", e)
+    );
   },
 
   updateMapNodes: (mapId, nodes, edges) => {
@@ -76,6 +78,6 @@ export const createMapsSlice: StateCreator<MapsSlice> = (set) => ({
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nodes, edges }),
-    }).catch((e) => console.error(e));
+    }).catch((e) => console.error("Помилка оновлення вузлів мапи:", e));
   },
 });

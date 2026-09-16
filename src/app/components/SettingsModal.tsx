@@ -1,45 +1,33 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useSettingsStore } from "@/store/useSettingsStore";
-import { useAuthStore } from "@/store/useAuthStore";
-import { Check, ChevronDown, X } from "lucide-react";
+import { X, ChevronDown, Check } from "lucide-react";
+import { useSettingsModal } from "@/app/hooks/useSettingsModal";
 
 export function SettingsModal() {
   const {
+    mounted,
     isSettingsOpen,
     closeSettings,
     theme,
     setTheme,
-    language,
-    setLanguage,
     mapTheme,
     setMapTheme,
     useThickLines,
     setUseThickLines,
-  } = useSettingsStore();
-
-  const { logout, user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<"general" | "map" | "account">(
-    "general"
-  );
-  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
-
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+    user,
+    activeTab,
+    setActiveTab,
+    isLangDropdownOpen,
+    setIsLangDropdownOpen,
+    languages,
+    currentLangObj,
+    language,
+    selectLanguage,
+    handleLogout,
+  } = useSettingsModal();
 
   if (!mounted || !isSettingsOpen) return null;
-
-  const languages = [
-    { id: "en", name: "English", code: "US" },
-    { id: "ua", name: "Українська", code: "UA" },
-  ];
-
-  const currentLangObj =
-    languages.find((l) => l.id === language) || languages[0];
 
   return createPortal(
     <div
@@ -53,6 +41,7 @@ export function SettingsModal() {
           if (isLangDropdownOpen) setIsLangDropdownOpen(false);
         }}
       >
+
         <button
           onClick={closeSettings}
           className="absolute top-4 right-4 z-10 text-gray-400 transition-colors hover:text-gray-600"
@@ -125,7 +114,6 @@ export function SettingsModal() {
                       </span>
                       <span>{currentLangObj.name}</span>
                     </div>
-
                     <ChevronDown
                       strokeWidth={2}
                       className={`h-5 w-5 text-gray-400 transition-transform ${isLangDropdownOpen ? "rotate-180" : ""}`}
@@ -137,10 +125,7 @@ export function SettingsModal() {
                       {languages.map((lang) => (
                         <button
                           key={lang.id}
-                          onClick={() => {
-                            setLanguage(lang.id as "en" | "ua");
-                            setIsLangDropdownOpen(false);
-                          }}
+                          onClick={() => selectLanguage(lang.id as "en" | "ua")}
                           className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm font-bold transition-colors hover:bg-gray-50 ${
                             language === lang.id
                               ? "text-primary-color bg-blue-50"
@@ -152,10 +137,7 @@ export function SettingsModal() {
                             <span>{lang.name}</span>
                           </div>
                           {language === lang.id && (
-                            <Check
-                              strokeWidth={3}
-                              className="text-primary-color h-4 w-4"
-                            />
+                            <Check strokeWidth={3} className="text-primary-color h-4 w-4" />
                           )}
                         </button>
                       ))}
@@ -228,10 +210,7 @@ export function SettingsModal() {
               )}
               <div className="mt-auto border-t border-red-100 pt-6">
                 <button
-                  onClick={() => {
-                    logout();
-                    closeSettings();
-                  }}
+                  onClick={handleLogout}
                   className="rounded-md border border-red-200 bg-red-50 px-6 py-2.5 text-sm font-bold text-red-600 hover:bg-red-100"
                 >
                   Log Out

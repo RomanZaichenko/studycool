@@ -22,6 +22,8 @@ const stubClientRect = (): DOMRect => ({
 
 document.elementFromPoint = () => null;
 
+Element.prototype.scrollIntoView = () => {};
+
 document.createRange = () => {
   const range = new Range();
   range.getBoundingClientRect = stubClientRect;

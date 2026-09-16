@@ -1,12 +1,9 @@
 "use client";
 
-import { useMapEditorStore } from "@/store/useMapEditorStore";
-import { useMainStore } from "@/store/useMainStore";
-import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { type Node as FlowNode, Edge } from "@xyflow/react";
 import { X } from "lucide-react";
-import { processExport } from "@/lib/export";
+import { type Node as FlowNode, Edge } from "@xyflow/react";
+import { useExportModal } from "../hooks/useExportModal";
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -18,114 +15,22 @@ interface ExportModalProps {
   edges?: Edge[];
 }
 
-const MAP_CATEGORIES = [
-  {
-    id: "image",
-    label: "Image",
-    desc: "Visual snapshot of your map",
-    extensions: ["png", "jpeg", "svg"],
-  },
-  {
-    id: "document",
-    label: "Document",
-    desc: "Structured hierarchical file",
-    extensions: ["docx", "pdf"],
-  },
-  {
-    id: "text",
-    label: "Text",
-    desc: "Raw notes and hierarchy",
-    extensions: ["md", "txt"],
-  },
-  {
-    id: "studycool",
-    label: "StudyCool File",
-    desc: "Editable backup format",
-    extensions: ["studycool"],
-  },
-];
+export function ExportModal(props: ExportModalProps) {
+  const { isOpen, onClose } = props;
 
-const NOTE_CATEGORIES = [
-  {
-    id: "document",
-    label: "Document",
-    desc: "Formatted document",
-    extensions: ["docx", "pdf"],
-  },
-  {
-    id: "text",
-    label: "Text",
-    desc: "Raw text format",
-    extensions: ["md", "txt"],
-  },
-];
-
-export function ExportModal({
-  isOpen,
-  onClose,
-  exportType,
-  fileName: propFileName,
-  activeNodeId,
-  nodes: propNodes,
-  edges: propEdges,
-}: ExportModalProps) {
-  const [isMounted, setIsMounted] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedExt, setSelectedExt] = useState("");
-
-  const globalNodes = useMapEditorStore((state) => state.nodes);
-  const globalEdges = useMapEditorStore((state) => state.edges);
-  const currentMapId = useMapEditorStore((state) => state.currentMapId);
-  const maps = useMainStore((state) => state.maps);
-
-  const categories = exportType === "map" ? MAP_CATEGORIES : NOTE_CATEGORIES;
-  const modalTitle = exportType === "map" ? "Export Mind Map" : "Export Note";
-
-  useEffect(() => {
-    if (isOpen) {
-      const initialCategory = categories[0];
-      setSelectedCategory(initialCategory.id);
-      setSelectedExt(initialCategory.extensions[0]);
-    }
-  }, [exportType, isOpen, categories]);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const {
+    isMounted,
+    categories,
+    modalTitle,
+    selectedCategory,
+    selectedExt,
+    setSelectedExt,
+    activeCategoryData,
+    handleCategoryClick,
+    handleExport,
+  } = useExportModal(props);
 
   if (!isOpen || !isMounted) return null;
-
-  const handleCategoryClick = (catId: string, exts: string[]) => {
-    setSelectedCategory(catId);
-    setSelectedExt(exts[0]);
-  };
-
-  const handleExport = () => {
-    const currentMap =
-      currentMapId != null
-        ? maps.find((m) => m.id === String(currentMapId))
-        : undefined;
-
-    const finalFileName = propFileName || currentMap?.title || "My_Map";
-    const finalNodes = propNodes || globalNodes;
-    const finalEdges = propEdges || globalEdges;
-
-    try {
-      processExport(
-        selectedExt,
-        finalFileName,
-        finalNodes,
-        finalEdges,
-        activeNodeId
-      );
-      onClose();
-    } catch (error) {
-      console.error("Export failed:", error);
-      alert("Формат ще не підтримується або сталася помилка.");
-    }
-  };
-
-  const activeCategoryData = categories.find((c) => c.id === selectedCategory);
 
   return createPortal(
     <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/10 p-4 font-sans backdrop-blur-sm">
