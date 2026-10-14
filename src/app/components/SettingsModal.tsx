@@ -1,10 +1,12 @@
 "use client";
 
+import { Session } from "next-auth";
 import { createPortal } from "react-dom";
 import { X, ChevronDown, Check } from "lucide-react";
 import { useSettingsModal } from "@/app/hooks/useSettingsModal";
+import { getInitials } from "@/lib/getInitials";
 
-export function SettingsModal() {
+export function SettingsModal({user}: {user: Session["user"] | null}) {
   const {
     mounted,
     isSettingsOpen,
@@ -15,7 +17,6 @@ export function SettingsModal() {
     setMapTheme,
     useThickLines,
     setUseThickLines,
-    user,
     activeTab,
     setActiveTab,
     isLangDropdownOpen,
@@ -192,7 +193,7 @@ export function SettingsModal() {
               {user ? (
                 <div className="flex items-center gap-4 rounded-lg border border-gray-100 bg-gray-50 p-5 shadow-sm">
                   <div className="bg-primary-color flex h-14 w-14 items-center justify-center rounded-md text-xl font-bold text-white shadow-sm">
-                    {user.initials}
+                    {getInitials(user)}
                   </div>
                   <div>
                     <p className="text-lg font-bold text-gray-800">

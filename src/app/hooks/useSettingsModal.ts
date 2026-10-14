@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSettingsStore } from "@/store/useSettingsStore";
-import { useAuthStore } from "@/store/useAuthStore";
+import { logoutAction } from "../actions/auth.actions";
+import { useMainStore } from "@/store/useMainStore";
 
 export const LANGUAGES = [
   { id: "en", name: "English", code: "US" },
@@ -21,8 +22,7 @@ export function useSettingsModal() {
     setUseThickLines,
   } = useSettingsStore();
 
-  const { logout, user } = useAuthStore();
-
+  const clearData = useMainStore((s) => s.clearData);
   const [activeTab, setActiveTab] = useState<"general" | "map" | "account">(
     "general"
   );
@@ -41,9 +41,10 @@ export function useSettingsModal() {
     setIsLangDropdownOpen(false);
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    clearData();
     closeSettings();
+    await logoutAction();
   };
 
   return {
@@ -56,7 +57,6 @@ export function useSettingsModal() {
     setMapTheme,
     useThickLines,
     setUseThickLines,
-    user,
     activeTab,
     setActiveTab,
     isLangDropdownOpen,

@@ -25,7 +25,7 @@ export default async function RootLayout({
           {children}
         </main>
 
-        <SettingsModal />
+        <SettingsModal user={session?.user ?? null} />
       </body>
     </html>
   );
