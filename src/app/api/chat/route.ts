@@ -1,11 +1,53 @@
+import { auth } from "@/auth";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
 const getAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const MAX_MESSAGE_LENGTH = 1000;
+const MAX_CONTEXT_LENGTH = 30000;
 
 export async function POST(req: Request) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { message, mapContext } = await req.json();
+    if (message.length > 1000) {
+      return NextResponse.json(
+        { error: "Message exceeds the maximum length of 1000 characters." },
+        { status: 400 }
+      );
+    }
+
+    if (typeof message !== "string" || message.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Message is required." },
+        { status: 400 }
+      );
+    }
+    if (message.length > MAX_MESSAGE_LENGTH) {
+      return NextResponse.json(
+        {
+          error: `Message exceeds the maximum length of ${MAX_MESSAGE_LENGTH} characters.`,
+        },
+        { status: 400 }
+      );
+    }
+    if (mapContext !== undefined && typeof mapContext !== "string") {
+      return NextResponse.json(
+        { error: "Invalid map context." },
+        { status: 400 }
+      );
+    }
+    if (mapContext && mapContext.length > MAX_CONTEXT_LENGTH) {
+      return NextResponse.json(
+        { error: "Map context is too large." },
+        { status: 400 }
+      );
+    }
 
     const model = getAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
