@@ -5,7 +5,6 @@ import { FontFamily } from "@tiptap/extension-font-family";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
 import { Highlight } from "@tiptap/extension-highlight";
-import { Underline } from "@tiptap/extension-underline";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import BulletList from "@tiptap/extension-bullet-list";
 import OrderedList from "@tiptap/extension-ordered-list";
@@ -65,7 +64,6 @@ export function useNoteEditorLogic(
       TaskItem.configure({
         nested: true,
       }),
-      Underline,
       TextStyle,
       FontFamily,
       FontSize,

@@ -101,7 +101,7 @@ export function useExportModal({
     setSelectedExt(exts[0]);
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const currentMap =
       currentMapId != null
         ? maps.find((m) => m.id === String(currentMapId))
@@ -112,7 +112,7 @@ export function useExportModal({
     const finalEdges = propEdges || globalEdges;
 
     try {
-      processExport(
+      await processExport(
         selectedExt,
         finalFileName,
         finalNodes,

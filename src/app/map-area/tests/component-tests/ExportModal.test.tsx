@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ExportModal } from "../../components/ExportModal";
 import { useMapEditorStore } from "@/store/useMapEditorStore";
@@ -56,7 +56,7 @@ describe("ExportModal Component", () => {
     expect(screen.getByText("Export as .jpeg")).toBeInTheDocument();
   });
 
-  it("calls processExport with the map's title and closes on export", () => {
+  it("calls processExport with the map's title and closes on export", async () => {
     render(<ExportModal isOpen={true} onClose={mockOnClose} exportType="map" />);
 
     fireEvent.click(screen.getByText("Export as .png"));
@@ -68,7 +68,22 @@ describe("ExportModal Component", () => {
       [],
       undefined
     );
-    expect(mockOnClose).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockOnClose).toHaveBeenCalledTimes(1));
+  });
+
+  it("shows an alert and keeps the modal open when export fails", async () => {
+    vi.mocked(processExport).mockRejectedValueOnce(new Error("boom"));
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    render(<ExportModal isOpen={true} onClose={mockOnClose} exportType="map" />);
+    fireEvent.click(screen.getByText("Export as .png"));
+
+    await waitFor(() => expect(alertSpy).toHaveBeenCalledTimes(1));
+    expect(mockOnClose).not.toHaveBeenCalled();
+
+    alertSpy.mockRestore();
+    errorSpy.mockRestore();
   });
 
   it("calls onClose without exporting when Cancel is clicked", () => {

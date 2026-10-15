@@ -64,7 +64,7 @@ export function useAIChat({ onClose }: UseAIChatArgs) {
 
     const contextStrings = currentNodes
       .map((node) => {
-        const title = node.data?.title || "Untitled";
+        const title = node.data?.label || "Untitled";
         const rawContent = (node.data?.noteContent as string) || "";
         const cleanContent = rawContent
           .replace(/<[^>]+>/g, " ")
